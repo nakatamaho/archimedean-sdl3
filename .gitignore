@@ -1,0 +1,23 @@
+# CMake and build output
+build/
+build-*/
+cmake-build-*/
+
+# Generated and compiled artifacts
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+
+# Tool and IDE state
+.cache/
+.vscode/
+.idea/
+compile_commands.json
+
+# Local files
+.DS_Store
+*.swp
+
