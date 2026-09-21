@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M7 — complete.
+Current milestone: M8 — complete.
 
 ## Dependency baseline
 
@@ -19,6 +19,7 @@ Current milestone: M7 — complete.
 - M5 — SDL3 CPU-side filled polygon renderer with culling and depth sorting.
 - M6 — flat Lambert shading, polygon-size palette, and testable lighting path.
 - M7 — keyboard controls, dynamic solid cycling, view state, wireframe overlay, and title status.
+- M8 — MinGW-w64 cross-build, PE artifacts, adjacent SDL3 DLL, and Wine compatibility checks.
 
 ## Evidence
 
@@ -440,5 +441,54 @@ M7 implementation commit:
 
 ```text
 [main a2369a6] feat: add viewer controls and state machine
+```
+
+## M8 evidence
+
+The host provides `x86_64-w64-mingw32-g++` GCC 13-win32 and
+`x86_64-w64-mingw32-windres`. The existing CMake toolchain file configured a
+Windows x86_64 build with vendored SDL3 shared, and the post-build rule copied
+`SDL3.dll` beside the viewer executable. The cross-build also produced the
+headless test executable.
+
+Exact cross-build and artifact commands:
+
+```sh
+cmake --fresh -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=ON -DSDL_STATIC=OFF
+cmake --build build-mingw --parallel 2
+file build-mingw/archimedean_viewer.exe build-mingw/archview_tests.exe build-mingw/SDL3.dll
+test -f build-mingw/archimedean_viewer.exe
+test -f build-mingw/archview_tests.exe
+test -f build-mingw/SDL3.dll
+```
+
+Observed results:
+
+```text
+PE32+ executable for MS Windows, x86-64: archimedean_viewer.exe
+PE32+ executable for MS Windows, x86-64: archview_tests.exe
+PE32+ executable for MS Windows, x86-64: SDL3.dll
+PASS: MinGW artifacts and adjacent SDL3.dll present
+```
+
+The Windows binaries were additionally exercised under the host's Wine
+compatibility layer:
+
+```sh
+WINEDEBUG=-all wine ./build-mingw/archimedean_viewer.exe --selftest --data data/archimedean.json
+WINEDEBUG=-all wine ./build-mingw/archview_tests.exe
+```
+
+Both returned zero and printed their PASS lines. Wine is not a native Windows
+runtime, so these are compatibility checks, not native Windows evidence. No
+native Windows machine or Windows GUI session is available on this host;
+native Windows `--selftest` and GUI runtime evidence remain deferred.
+
+M8 documentation commit:
+
+```text
+MinGW compiler: x86_64-w64-mingw32-g++ (GCC 13-win32)
+cross-build: PASS
+native Windows runtime: DEFERRED
 ```
 ```

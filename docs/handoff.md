@@ -1,12 +1,11 @@
 # Handoff
 
-Next task: complete M8 only.
+Next task: complete M9 only.
 
-Run the MinGW-w64 cross-build and document DLL handling and the distinction
-between cross-compile evidence and native Windows runtime evidence. Add no
-platform-specific renderer behavior unless the cross-build exposes a real
-portability issue.
+Add Ubuntu and Windows/MSYS2 MinGW GitHub Actions jobs. CI should build the
+viewer and tests, run CTest, the CPython validator, and `--selftest`; it must
+not require SageMath regeneration or claim GUI evidence.
 
-M0 through M7 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M8 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.
