@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M9 — complete.
+Current milestone: M10 — complete.
 
 ## Dependency baseline
 
@@ -21,6 +21,7 @@ Current milestone: M9 — complete.
 - M7 — keyboard controls, dynamic solid cycling, view state, wireframe overlay, and title status.
 - M8 — MinGW-w64 cross-build, PE artifacts, adjacent SDL3 DLL, and Wine compatibility checks.
 - M9 — Ubuntu and Windows/MSYS2 GitHub Actions validation jobs.
+- M10 — fresh-clone release QA, deterministic regeneration check, release checklist, and final documentation.
 
 ## Evidence
 
@@ -530,5 +531,85 @@ M9 implementation commits:
 ```text
 [main 32d38c9] ci: add Linux and Windows validation jobs
 [main ba585d5] ci: install SDL Linux window dependencies
+```
+
+## M10 evidence
+
+Release documentation is complete in `README.md` and
+`docs/release_checklist.md`. The README documents the project purpose, all 13
+solid IDs, Linux and Windows/MinGW build paths, SageMath provenance and
+determinism procedure, every keyboard control, schema summary, screenshot
+placeholder, license, and dependency versions.
+
+Fresh recursive-clone QA used the remote `main` commit `c8be498`:
+
+```sh
+qa_tmp=$(mktemp -d)
+git clone --recursive https://github.com/nakatamaho/archimedean-sdl3.git "$qa_tmp/repo"
+cd "$qa_tmp/repo"
+cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build-release --parallel 2
+ctest --test-dir build-release --output-on-failure
+python3 tools/validate_archimedean.py data/archimedean.json
+./build-release/archimedean_viewer --selftest --data data/archimedean.json
+```
+
+The clone was clean, its submodules were SDL commit
+`fa2c02bb6e21974a89ea9824bc53c9932abe5f9c` and json commit
+`55f93686c01528224f448c19128836e7df245f72`, and the observed results were:
+
+```text
+100% tests passed, 0 tests failed out of 3
+PASS: validated 13 solids
+PASS: loaded 13 solids; selected truncated_icosahedron
+PASS: fresh recursive clone Release QA
+```
+
+Fresh SageMath regeneration from that clone was repeated and compared:
+
+```sh
+gen_tmp=$(mktemp -d)
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python "$qa_tmp/repo/tools/generate_archimedean.py" --output "$gen_tmp/one.json"
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python "$qa_tmp/repo/tools/generate_archimedean.py" --output "$gen_tmp/two.json"
+cmp -s "$gen_tmp/one.json" "$gen_tmp/two.json"
+sha256sum "$gen_tmp/one.json" "$gen_tmp/two.json"
+python3 "$qa_tmp/repo/tools/validate_archimedean.py" "$gen_tmp/one.json"
+cmp -s "$gen_tmp/one.json" "$qa_tmp/repo/data/archimedean.json"
+```
+
+Observed result:
+
+```text
+generated 13 solids at both paths
+ce314ef86167934e92a170f0a50dc9ad0afbbd7a7d796e1a762f342527927676  one.json
+ce314ef86167934e92a170f0a50dc9ad0afbbd7a7d796e1a762f342527927676  two.json
+PASS: validated 13 solids
+PASS: fresh-clone generated JSON matches committed artifact byte-for-byte
+```
+
+The final all-solid smoke sweep selected all 13 IDs with `--selftest` and
+started the offscreen render loop for every ID; each timed out at the expected
+one-second observation boundary rather than exiting with an application error.
+The final data audit reported these aggregate face sizes:
+
+```text
+solid_count=13
+face_sizes=[(3, 200), (4, 108), (5, 48), (6, 60), (8, 12), (10, 24)]
+```
+
+The M10-triggered GitHub Actions run `35580125630` completed successfully for
+both Ubuntu GCC/Ninja and Windows MSYS2 UCRT64/Ninja. This is headless CI
+evidence, not visual evidence.
+
+Final QA limitations are explicit: this host has empty `DISPLAY` and
+`WAYLAND_DISPLAY`, so no real display-backed screenshot or interactive visual
+PASS was possible. No native Windows machine/session is available, so native
+Windows runtime evidence remains deferred; the MinGW cross-build and Wine
+compatibility checks are not relabeled as native Windows evidence.
+
+M10 implementation commit:
+
+```text
+[main c8be498] docs: finish release documentation
 ```
 ```

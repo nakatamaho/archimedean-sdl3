@@ -1,12 +1,11 @@
 # Handoff
 
-Next task: complete M10 only.
+Project complete through M10.
 
-Perform fresh-clone release QA, regenerate and compare canonical JSON from the
-documented Sage environment, finish README/release-checklist documentation,
-and record remaining display/native-Windows evidence as deferred if this host
-still cannot provide it.
+No implementation milestone remains. External evidence still deferred:
+display-backed Linux/Windows visual run and native Windows runtime. Do not
+claim either from offscreen execution, Wine, cross-compilation, or CI.
 
-M0 through M9 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M10 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.
