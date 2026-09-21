@@ -126,9 +126,23 @@ int main(int argc, char** argv)
             return 0;
         }
 
+        const archview::Model model =
+            archview::load_model_file(options.data_path);
+        (void)archview::find_solid(model, options.solid_id);
         const archview::Renderer renderer;
-        std::cout << "archimedean_viewer M4 core; renderer available="
-                  << (renderer.skeleton_available() ? "yes" : "no") << "\n";
+        std::string error;
+        if (!renderer.run(
+                model,
+                options.solid_id,
+                options.width,
+                options.height,
+                options.axis,
+                options.speed_degrees,
+                error
+            )) {
+            std::cerr << "error: " << error << "\n";
+            return 1;
+        }
         return 0;
     } catch (const archview::ModelError& error) {
         std::cerr << "error: " << error.what() << "\n";
