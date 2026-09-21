@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(archimedean_sdl3 VERSION 0.1.0 LANGUAGES CXX)
+project(archimedean_sdl3 VERSION 1.0.0 LANGUAGES CXX)
 
 option(ARCHVIEW_USE_SYSTEM_DEPS
        "Use system-installed SDL3 and nlohmann_json packages"
@@ -86,6 +86,15 @@ target_link_libraries(archview_renderer
 add_executable(archimedean_viewer
     src/main.cpp
 )
+if(APPLE)
+    set_target_properties(archimedean_viewer PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.archview.archimedean-sdl3"
+        MACOSX_BUNDLE_BUNDLE_NAME "Archimedean SDL3 Viewer"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    )
+endif()
 target_link_libraries(archimedean_viewer
     PRIVATE
         archview_renderer
@@ -117,7 +126,10 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME archview_tests COMMAND archview_tests)
-    add_test(NAME archview_embedded_selftest COMMAND archimedean_viewer --selftest)
+    add_test(
+        NAME archview_embedded_selftest
+        COMMAND $<TARGET_FILE:archimedean_viewer> --selftest
+    )
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
     add_test(
         NAME archview_validator

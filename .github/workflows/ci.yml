@@ -96,3 +96,45 @@ jobs:
 
       - name: Run headless viewer self-test
         run: ./build/archimedean_viewer.exe --selftest
+
+  macos:
+    name: macOS ${{ matrix.arch }}/CMake
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run CTest
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate committed JSON
+        run: python tools/validate_archimedean.py data/archimedean.json
+
+      - name: Run headless viewer self-test
+        run: ./build/archimedean_viewer.app/Contents/MacOS/archimedean_viewer --selftest

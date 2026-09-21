@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Run CTest
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate committed JSON
+        run: python tools/validate_archimedean.py data/archimedean.json
+
+      - name: Run embedded-data self-test
+        run: ./build/archimedean_viewer.app/Contents/MacOS/archimedean_viewer --selftest
+
+      - name: Package architecture bundle
+        run: |
+          mkdir -p package
+          ditto build/archimedean_viewer.app "package/ArchimedeanViewer-${{ matrix.arch }}.app"
+          cp LICENSE README.md package/
+
+      - name: Upload architecture artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archview-macos-${{ matrix.arch }}
+          path: package
+
+  publish:
+    name: Publish universal macOS release
+    needs: build-macos
+    runs-on: macos-14
+    steps:
+      - name: Download Intel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: archview-macos-x86_64
+          path: incoming/x86_64
+
+      - name: Download Apple Silicon artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: archview-macos-arm64
+          path: incoming/arm64
+
+      - name: Create universal app and archive
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p release
+          ditto incoming/arm64/ArchimedeanViewer-arm64.app release/ArchimedeanViewer.app
+          lipo -create \
+            incoming/x86_64/ArchimedeanViewer-x86_64.app/Contents/MacOS/archimedean_viewer \
+            incoming/arm64/ArchimedeanViewer-arm64.app/Contents/MacOS/archimedean_viewer \
+            -output release/ArchimedeanViewer.app/Contents/MacOS/archimedean_viewer
+          lipo -info release/ArchimedeanViewer.app/Contents/MacOS/archimedean_viewer
+          cp incoming/arm64/LICENSE incoming/arm64/README.md release/
+          tar -czf "release/archimedean-sdl3-${RELEASE_TAG}-macos-universal.tar.gz" \
+            -C release ArchimedeanViewer.app LICENSE README.md
+          shasum -a 256 "release/archimedean-sdl3-${RELEASE_TAG}-macos-universal.tar.gz"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "release/archimedean-sdl3-${RELEASE_TAG}-macos-universal.tar.gz" \
+            --title "Archimedean SDL3 Viewer ${RELEASE_TAG}" \
+            --generate-notes

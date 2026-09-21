@@ -37,6 +37,15 @@ between automated/headless checks and real GUI or native-platform runs.
 - [ ] Native Windows `--selftest` and GUI run — DEFERRED: no native Windows
   machine/session is available.
 
+## macOS
+
+- [x] Native Intel and Apple Silicon CI builds produce macOS app bundles.
+- [x] macOS static SDL3 builds pass CTest, validator, and embedded-data
+  self-test.
+- [x] Universal macOS release archive is produced by the release workflow.
+- [ ] Apple-signed/notarized distribution — DEFERRED: signing credentials are
+  not available.
+
 ## CI and documentation
 
 - [x] Ubuntu and Windows CI jobs checkout submodules recursively.

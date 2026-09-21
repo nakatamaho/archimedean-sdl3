@@ -85,6 +85,25 @@ cross-compile is not native Windows runtime evidence. See
 [`docs/status.md`](docs/status.md) for the current platform evidence and
 limitations.
 
+## macOS
+
+The macOS build uses a native SDL3 static library and produces an application
+bundle. On an Intel or Apple Silicon runner:
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_TESTING=ON \
+  -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+open build/archimedean_viewer.app
+```
+
+The `v1.0.0` release provides a universal macOS application archive for both
+Intel and Apple Silicon. The archive is unsigned; macOS may require the user
+to approve it in Privacy & Security before opening it.
+
 ## SageMath generation
 
 The generator requires SageMath 10.9 or a compatible Sage release, with
