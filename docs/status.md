@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M1 — complete.
+Current milestone: M4 — complete.
 
 ## Dependency baseline
 
@@ -13,6 +13,9 @@ Current milestone: M1 — complete.
 
 - M0 — repository bootstrap and documentation scaffold committed.
 - M1 — vendored dependency and CMake/headless executable baseline committed.
+- M2 — SageMath generator for all 13 solids.
+- M3 — independent CPython validator and canonical JSON data committed.
+- M4 — SDL-independent C++ model loader, topology validation, and math library.
 
 ## Evidence
 
@@ -263,6 +266,45 @@ M3 implementation commit:
 ```text
 [main 45e891f] feat: validate and commit canonical solid data
  6 files changed, 10253 insertions(+), 1 deletion(-)
+
+## M4 evidence
+
+The C++17 core now loads schema v1 through nlohmann/json without an SDL
+dependency. It validates all 13 solids, explicit polygon faces and edges,
+expected combinatorics, Euler characteristic, manifold edge incidence,
+planarity, outward winding, centroid, finite coordinates, and normalized edge
+lengths. The math library provides finite vectors, robust normalization,
+dot/cross products, axis-angle `Mat3` rotation, and right-handed
+perspective projection with positive view-space Z as forward.
+
+The headless checks were:
+
+```sh
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+./build/archimedean_viewer --selftest --data data/archimedean.json
+./build/archimedean_viewer --selftest --data missing.json
+```
+
+Observed results:
+
+```text
+100% tests passed, 0 tests failed out of 3
+PASS: loaded 13 solids; selected truncated_icosahedron
+error: cannot open JSON file: missing.json
+```
+
+The C++ tests cover representative vector normalization, axis-angle rotation,
+projection and near-plane rejection, all committed solids, missing-solid
+lookup, unsupported schema version, and invalid vertex index. The
+`--selftest` path does not create an SDL window.
+
+M4 implementation commit:
+
+```text
+[main b934514] feat: add validated model loader and math library
+ 9 files changed, 843 insertions(+), 33 deletions(-)
+```
 ```
 ```
 ```
