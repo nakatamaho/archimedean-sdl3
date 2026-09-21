@@ -1,12 +1,12 @@
 # Handoff
 
-Next task: complete M7 only.
+Next task: complete M8 only.
 
-Add the documented keyboard controls, dynamic solid cycling, arbitrary-axis
-editing, pause/reverse/reset/speed/zoom state, wireframe overlay, lighting
-toggle, and modest-rate title status updates. Keep state transitions testable
-without opening a window and preserve the CPU renderer.
+Run the MinGW-w64 cross-build and document DLL handling and the distinction
+between cross-compile evidence and native Windows runtime evidence. Add no
+platform-specific renderer behavior unless the cross-build exposes a real
+portability issue.
 
-M0 through M6 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M7 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.

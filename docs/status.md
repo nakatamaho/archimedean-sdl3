@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M6 — complete.
+Current milestone: M7 — complete.
 
 ## Dependency baseline
 
@@ -18,6 +18,7 @@ Current milestone: M6 — complete.
 - M4 — SDL-independent C++ model loader, topology validation, and math library.
 - M5 — SDL3 CPU-side filled polygon renderer with culling and depth sorting.
 - M6 — flat Lambert shading, polygon-size palette, and testable lighting path.
+- M7 — keyboard controls, dynamic solid cycling, view state, wireframe overlay, and title status.
 
 ## Evidence
 
@@ -394,5 +395,50 @@ M6 implementation commit:
 
 ```text
 [main 9614dd0] feat: add flat Lambert face shading
+```
+
+## M7 evidence
+
+The renderer now translates every documented SDL key into an SDL-independent
+`ViewerState` action. The state machine covers pause/resume, next/previous
+solid with wraparound, X/Y/Z axis presets, normalized azimuth/elevation edits,
+clamped signed speed in `[-360, 360]` degrees per second, reverse, orientation
+reset, wireframe and Lambert toggles, zoom in/out, and Home view reset. Elapsed
+performance-counter time advances orientation rather than frame count. The
+window title is refreshed at 10 Hz with solid, speed, normalized axis, and
+paused/running status. The camera distance and pixel size are recomputed after
+resize; the default distance fits the largest normalized solid.
+
+The state transition test exercises pause behavior, wraparound, axis
+normalization, speed and zoom clamps, toggles, reset semantics, and elapsed
+rotation without creating an SDL window.
+
+Exact regression commands:
+
+```sh
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+./build/archimedean_viewer --help
+./build/archimedean_viewer --selftest --data data/archimedean.json
+SDL_VIDEODRIVER=offscreen SDL_RENDER_DRIVER=software timeout 2s ./build/archimedean_viewer --data data/archimedean.json --width 320 --height 240
+```
+
+Observed results:
+
+```text
+100% tests passed, 0 tests failed out of 3
+help listed the existing command-line options successfully
+PASS: loaded 13 solids; selected truncated_icosahedron
+offscreen process exit=124; it stayed in the render loop
+```
+
+The offscreen run is startup/frame-loop evidence only. No physical display is
+available on this host, so interactive keyboard and visual screenshot evidence
+remains deferred.
+
+M7 implementation commit:
+
+```text
+[main a2369a6] feat: add viewer controls and state machine
 ```
 ```
