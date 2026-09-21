@@ -745,4 +745,112 @@ M10 implementation commit:
 ```text
 [main c8be498] docs: finish release documentation
 ```
+
+## v1.2 regular-solid extension and release evidence
+
+The v1.2 extension adds the five Platonic solids, in this canonical order:
+`tetrahedron`, `cube`, `octahedron`, `dodecahedron`, and `icosahedron`. The
+existing 13 Archimedean solids follow them, for a total of 18 deterministic
+regular-solid models. SageMath constructors are used for all five additions;
+no hand-copied coordinate table was added.
+
+Implementation and release-workflow commits in this follow-up are:
+
+```text
+34621f7 feat: add Platonic solids for v1.2
+02c1dbe fix: upload release files without app directory
+ebbf3c4 fix: make release checksums portable
 ```
+
+The local SageMath 10.9 environment was used for deterministic regeneration:
+
+```sh
+tmp_dir=$(mktemp -d /tmp/archview-v12-gen.XXXXXX)
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output "$tmp_dir/one.json"
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output "$tmp_dir/two.json"
+cmp -s "$tmp_dir/one.json" "$tmp_dir/two.json"
+python3 tools/validate_archimedean.py "$tmp_dir/one.json"
+cp "$tmp_dir/one.json" data/archimedean.json
+sha256sum data/archimedean.json
+```
+
+Observed result:
+
+```text
+generated 18 solids at both paths
+PASS: validated 18 solids
+solid_count=18
+data/archimedean.json SHA256: 29dea1fc97a104f55b5b3d9a6b3899e527a12fb0ceaf2a6e11a95d61fdf113f1
+```
+
+The five new combinatorial records are `(V,E,F)` = `(4,6,4)`, `(8,12,6)`,
+`(6,12,8)`, `(20,30,12)`, and `(12,30,20)`, respectively. The aggregate
+face-size audit for all 18 models is `[(3,232), (4,114), (5,60), (6,60),
+(8,12), (10,24)]`.
+
+The clean local Linux static-SDL3 build and tests were:
+
+```sh
+cmake -S . -B build-v12-linux-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-v12-linux-static --parallel 4
+ctest --test-dir build-v12-linux-static --output-on-failure
+python3 tools/validate_archimedean.py data/archimedean.json
+./build-v12-linux-static/archimedean_viewer --selftest
+```
+
+Observed result: `100% tests passed, 0 tests failed out of 4`, validator PASS,
+and `PASS: loaded 18 solids`. `libSDL3.a` was present and `ldd` found no
+dynamic SDL3 dependency. All 18 IDs were also selected successfully through
+the headless self-test loop. A display-backed GUI run remains deferred because
+this host has no `DISPLAY` or `WAYLAND_DISPLAY`.
+
+The local MinGW complete-static build was:
+
+```sh
+cmake -S . -B build-v12-mingw-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-v12-mingw-static --parallel 4
+ctest --test-dir build-v12-mingw-static --output-on-failure -E 'archview_tests|archview_embedded_selftest'
+python3 tools/validate_archimedean.py data/archimedean.json
+WINEDEBUG=-all wine ./build-v12-mingw-static/archimedean_viewer.exe --selftest --solid dodecahedron
+WINEDEBUG=-all wine ./build-v12-mingw-static/archview_tests.exe
+```
+
+The unfiltered cross-build `ctest` attempt was not counted as a pass because
+CTest tried to execute PE files through the Linux shell. The two native-binary
+tests passed when run directly under Wine, and the filtered CTest run passed
+both CPython validator tests. `objdump` found no `SDL3.dll`, libgcc,
+libstdc++, or winpthread imports in either PE binary; UCRT API and Windows
+system DLL imports remain operating-system dependencies. Native Windows
+runtime and GUI evidence remain deferred.
+
+GitHub Actions CI run `35595902956` for `ebbf3c4` passed Ubuntu and Windows
+validation. Release workflow run `35595910773` passed all five jobs:
+
+```text
+Build Linux x86_64 (static SDL3): PASS
+Build MinGW x86_64 (fully static): PASS
+Build macOS x86_64: PASS
+Build macOS arm64: PASS
+Publish multi-platform release: PASS
+```
+
+The public [`v1.2.0` release](https://github.com/nakatamaho/archimedean-sdl3/releases/tag/v1.2.0)
+contains these verified assets:
+
+```text
+archimedean-sdl3-v1.2.0-linux-x86_64.tar.gz
+  19ddfeb66e9d2517257f35d22d258674cfa423906f0a7214f5c54ed9f03831c9
+archimedean-sdl3-v1.2.0-macos-universal.tar.gz
+  546b34eac93741f0fa2f177fa4aa154bc70ba428a847404898c03b73b74b8aec
+archimedean-sdl3-v1.2.0-mingw-x86_64.tar.gz
+  de8a5ae8cb5f5f5b3066b99237f88a0c15884e1f6353de7410d3db542ede9f82
+```
+
+`SHA256SUMS` verifies all three archives. The macOS payload is a Mach-O
+universal executable with x86_64 and arm64 slices. The Linux payload is an
+ELF x86_64 executable with SDL3 statically linked; normal Linux system
+libraries remain dynamic. The MinGW payload is a PE32+ x86_64 executable with
+SDL3 and the GCC/C++ runtime statically linked. The release is not signed or
+notarized. The v1.2.0 tag was created by the first successful publish at
+`02c1dbe`; the later workflow-only checksum fix was applied to the published
+assets without rewriting the tag.
