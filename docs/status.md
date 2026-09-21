@@ -449,9 +449,10 @@ M7 implementation commit:
 
 The host provides `x86_64-w64-mingw32-g++` GCC 13-win32 and
 `x86_64-w64-mingw32-windres`. The CMake toolchain and MinGW configuration now
-select vendored SDL3 static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`), so the viewer
-does not import or require `SDL3.dll`. The cross-build also produced the
-headless test executable.
+select vendored SDL3 static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`) and pass
+`-static -static-libgcc -static-libstdc++` to executable links. The viewer
+therefore does not import or require SDL3, GCC, or C++ runtime DLLs. The
+cross-build also produced the headless test executable.
 
 Exact cross-build and artifact commands:
 
@@ -493,7 +494,7 @@ M8 documentation commit:
 
 ```text
 MinGW compiler: x86_64-w64-mingw32-g++ (GCC 13-win32)
-SDL3 linkage: static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`)
+SDL3/runtime linkage: complete static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`, `-static -static-libgcc -static-libstdc++`)
 cross-build: PASS
 native Windows runtime: DEFERRED
 ```
@@ -501,6 +502,42 @@ native Windows runtime: DEFERRED
 The post-change GitHub Actions run `35586772349` also passed both Ubuntu
 GCC/Ninja and Windows MSYS2 UCRT64/Ninja jobs; the Windows job used the static
 SDL3 configuration.
+
+## Complete static MinGW follow-up
+
+The original MinGW artifact was SDL3-static but still imported
+`libgcc_s_seh-1.dll` and `libstdc++-6.dll`. The MinGW toolchain and top-level
+CMake configuration now enforce `-static -static-libgcc -static-libstdc++`.
+Only Windows system DLLs remain in the PE import table.
+
+Exact clean verification commands:
+
+```sh
+cmake --fresh -S . -B build-mingw-complete-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-mingw-complete-static --parallel 4
+grep -E '^CMAKE_EXE_LINKER_FLAGS:|^SDL_(SHARED|STATIC):' build-mingw-complete-static/CMakeCache.txt
+objdump -p build-mingw-complete-static/archimedean_viewer.exe | grep -i 'DLL Name'
+test -f build-mingw-complete-static/external/SDL/libSDL3.a
+if objdump -p build-mingw-complete-static/archimedean_viewer.exe | grep -Eiq 'SDL3\.dll|libgcc|libstdc\+\+|winpthread'; then exit 1; else echo 'PASS: no SDL3/GCC/C++/winpthread DLL imports'; fi
+WINEDEBUG=-all wine ./build-mingw-complete-static/archimedean_viewer.exe --selftest --data data/archimedean.json
+WINEDEBUG=-all wine ./build-mingw-complete-static/archview_tests.exe
+```
+
+Observed results:
+
+```text
+CMAKE_EXE_LINKER_FLAGS:STRING=-static -static-libgcc -static-libstdc++
+SDL_SHARED:BOOL=OFF
+SDL_STATIC:BOOL=ON
+PASS: no SDL3/GCC/C++/winpthread DLL imports
+PASS: loaded 13 solids; selected truncated_icosahedron
+PASS: archview_tests
+```
+
+The remaining imports are Windows system DLLs such as `KERNEL32.dll`,
+`USER32.dll`, and `msvcrt.dll`; they are operating-system dependencies rather
+than redistributable SDL3 or MinGW runtime DLLs. Native Windows runtime and
+display-backed GUI evidence remain deferred.
 
 ## M9 evidence
 

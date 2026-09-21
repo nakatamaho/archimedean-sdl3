@@ -74,10 +74,12 @@ cmake -S . -B build-mingw -G Ninja \
 cmake --build build-mingw --parallel
 ```
 
-The MinGW configuration statically links SDL3, so it does not require an
-adjacent `SDL3.dll`. A MinGW cross-compile is not native Windows runtime
-evidence. See [`docs/status.md`](docs/status.md) for the current platform
-evidence and limitations.
+The MinGW configuration statically links SDL3 and the GCC/C++ runtime, so the
+viewer does not require adjacent `SDL3.dll`, `libgcc_s_seh-1.dll`, or
+`libstdc++-6.dll` files. Windows system DLLs such as `KERNEL32.dll` remain
+normal operating-system dependencies. A MinGW cross-compile is not native
+Windows runtime evidence. See [`docs/status.md`](docs/status.md) for the
+current platform evidence and limitations.
 
 ## SageMath generation
 

@@ -26,8 +26,9 @@ between automated/headless checks and real GUI or native-platform runs.
 ## Windows / MinGW-w64
 
 - [x] MinGW-w64 x86_64 cross-build produces PE32+ viewer and test binaries.
-- [x] SDL3 is statically linked for the MinGW viewer and no SDL3 DLL is
-  required beside the executable.
+- [x] SDL3 and the MinGW GCC/C++ runtime are statically linked; no SDL3, GCC,
+  or C++ runtime DLL is required beside the executable (Windows system DLLs
+  remain expected).
 - [x] Wine compatibility self-tests pass on the Linux host.
 - [x] GitHub Actions MSYS2 UCRT64 job passes build, CTest, validator, and
   viewer self-test.

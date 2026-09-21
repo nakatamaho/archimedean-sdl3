@@ -12,3 +12,5 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 set(SDL_SHARED OFF CACHE BOOL "Build SDL3 as a shared library" FORCE)
 set(SDL_STATIC ON CACHE BOOL "Build SDL3 as a static library" FORCE)
+
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-static -static-libgcc -static-libstdc++")

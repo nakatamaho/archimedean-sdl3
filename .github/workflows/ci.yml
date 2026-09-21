@@ -36,6 +36,17 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
+      - name: Verify complete static runtime linkage
+        run: |
+          for binary in build/archimedean_viewer.exe build/archview_tests.exe; do
+            echo "Imports for $binary"
+            objdump -p "$binary" | grep -i 'DLL Name' || true
+            if objdump -p "$binary" | grep -Eiq 'SDL3\.dll|libgcc|libstdc\+\+|winpthread'; then
+              echo "Unexpected non-system runtime DLL import in $binary"
+              exit 1
+            fi
+          done
+
       - name: Run CTest
         run: ctest --test-dir build --output-on-failure
 
@@ -72,6 +83,7 @@ jobs:
         run: >-
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
+          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
 
       - name: Build
         run: cmake --build build --parallel
