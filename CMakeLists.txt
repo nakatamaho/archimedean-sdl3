@@ -76,6 +76,10 @@ target_link_libraries(archview_tests
     PRIVATE
         archview_core
 )
+target_compile_definitions(archview_tests
+    PRIVATE
+        ARCHVIEW_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(archview_core PRIVATE -Wall -Wextra -Wpedantic)
