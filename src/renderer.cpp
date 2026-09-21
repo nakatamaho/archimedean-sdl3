@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <iomanip>
+#include <iterator>
+#include <sstream>
 #include <vector>
 
 namespace archview {
@@ -12,17 +15,25 @@ namespace archview {
 namespace {
 
 constexpr double kPi = 3.14159265358979323846;
-constexpr double kCameraDistance = 6.0;
+constexpr double kCameraDistance = 14.0;
 constexpr double kVerticalFov = 45.0 * kPi / 180.0;
 constexpr double kNearPlane = 0.1;
 constexpr double kAmbient = 0.25;
 constexpr double kDiffuse = 0.75;
+constexpr double kSpeedStep = 15.0;
+constexpr double kMinimumSpeed = -360.0;
+constexpr double kMaximumSpeed = 360.0;
+constexpr double kMinimumZoom = 0.5;
+constexpr double kMaximumZoom = 2.0;
+constexpr double kAxisEditRadians = 5.0 * kPi / 180.0;
+constexpr double kTitleUpdateSeconds = 0.1;
 const Vec3 kLightDirection{-0.45, -0.65, -1.0};
 
 struct RenderFace {
     double depth{0.0};
     std::vector<SDL_Vertex> vertices;
     std::vector<int> indices;
+    std::vector<SDL_FPoint> outline;
 };
 
 Vec3 face_normal(const Face& face, const std::vector<Vec3>& vertices)
@@ -68,6 +79,7 @@ bool build_faces(
     const Mat3& rotation,
     double width,
     double height,
+    double camera_distance,
     std::vector<RenderFace>& output,
     std::string& error,
     const bool lighting_enabled
@@ -77,7 +89,7 @@ bool build_faces(
     view_vertices.reserve(solid.vertices.size());
     for (const Vec3& vertex : solid.vertices) {
         view_vertices.push_back(
-            rotation * vertex + Vec3{0.0, 0.0, kCameraDistance}
+            rotation * vertex + Vec3{0.0, 0.0, camera_distance}
         );
     }
 
@@ -116,6 +128,13 @@ bool build_faces(
             static_cast<float>(face_color.blue),
             static_cast<float>(face_color.alpha),
         };
+        render_face.outline.reserve(projected.size() + 1);
+        for (const ProjectedPoint& point : projected) {
+            render_face.outline.push_back({
+                static_cast<float>(point.x), static_cast<float>(point.y)
+            });
+        }
+        render_face.outline.push_back(render_face.outline.front());
         for (std::size_t index = 1; index + 1 < projected.size(); ++index) {
             const int base = static_cast<int>(render_face.vertices.size());
             const auto add_vertex = [&](const ProjectedPoint& point) {
@@ -158,7 +177,9 @@ bool render_frame(
     int width,
     int height,
     std::string& error,
-    const bool lighting_enabled
+    const double camera_distance,
+    const bool lighting_enabled,
+    const bool wireframe
 )
 {
     if (!SDL_SetRenderDrawColor(renderer, 12, 16, 24, SDL_ALPHA_OPAQUE)
@@ -173,6 +194,7 @@ bool render_frame(
             rotation,
             static_cast<double>(width),
             static_cast<double>(height),
+            camera_distance,
             faces,
             error,
             lighting_enabled
@@ -192,6 +214,22 @@ bool render_frame(
             return false;
         }
     }
+    if (wireframe) {
+        if (!SDL_SetRenderDrawColor(renderer, 8, 12, 20, SDL_ALPHA_OPAQUE)) {
+            error = std::string("SDL_SetRenderDrawColor failed: ") + SDL_GetError();
+            return false;
+        }
+        for (const RenderFace& face : faces) {
+            if (!SDL_RenderLines(
+                    renderer,
+                    face.outline.data(),
+                    static_cast<int>(face.outline.size())
+                )) {
+                error = std::string("SDL_RenderLines failed: ") + SDL_GetError();
+                return false;
+            }
+        }
+    }
     if (!SDL_RenderPresent(renderer)) {
         error = std::string("SDL_RenderPresent failed: ") + SDL_GetError();
         return false;
@@ -202,6 +240,88 @@ bool render_frame(
 std::string sdl_error(const char* action)
 {
     return std::string(action) + ": " + SDL_GetError();
+}
+
+bool action_for_key(const SDL_Keycode key, ViewerAction& action)
+{
+    switch (key) {
+    case SDLK_ESCAPE:
+        action = ViewerAction::Quit;
+        return true;
+    case SDLK_SPACE:
+        action = ViewerAction::TogglePause;
+        return true;
+    case SDLK_N:
+    case SDLK_PAGEDOWN:
+        action = ViewerAction::NextSolid;
+        return true;
+    case SDLK_P:
+    case SDLK_PAGEUP:
+        action = ViewerAction::PreviousSolid;
+        return true;
+    case SDLK_1:
+        action = ViewerAction::AxisX;
+        return true;
+    case SDLK_2:
+        action = ViewerAction::AxisY;
+        return true;
+    case SDLK_3:
+        action = ViewerAction::AxisZ;
+        return true;
+    case SDLK_LEFT:
+        action = ViewerAction::AzimuthDecrease;
+        return true;
+    case SDLK_RIGHT:
+        action = ViewerAction::AzimuthIncrease;
+        return true;
+    case SDLK_DOWN:
+        action = ViewerAction::ElevationDecrease;
+        return true;
+    case SDLK_UP:
+        action = ViewerAction::ElevationIncrease;
+        return true;
+    case SDLK_LEFTBRACKET:
+        action = ViewerAction::SpeedDecrease;
+        return true;
+    case SDLK_RIGHTBRACKET:
+        action = ViewerAction::SpeedIncrease;
+        return true;
+    case SDLK_BACKSPACE:
+        action = ViewerAction::Reverse;
+        return true;
+    case SDLK_R:
+        action = ViewerAction::ResetOrientation;
+        return true;
+    case SDLK_W:
+        action = ViewerAction::ToggleWireframe;
+        return true;
+    case SDLK_L:
+        action = ViewerAction::ToggleLighting;
+        return true;
+    case SDLK_PLUS:
+    case SDLK_EQUALS:
+        action = ViewerAction::ZoomIn;
+        return true;
+    case SDLK_MINUS:
+        action = ViewerAction::ZoomOut;
+        return true;
+    case SDLK_HOME:
+        action = ViewerAction::ResetView;
+        return true;
+    default:
+        return false;
+    }
+}
+
+std::string window_title(const Solid& solid, const ViewerState& state)
+{
+    std::ostringstream title;
+    title << solid.id << " | speed=" << std::fixed << std::setprecision(1)
+          << state.speed_degrees << " deg/s | axis=("
+          << std::setprecision(2) << state.axis.x << "," << state.axis.y
+          << "," << state.axis.z << ") | "
+          << (state.paused ? "paused" : "running");
+    return title.str();
 }
 
 }  // namespace
@@ -258,6 +378,129 @@ FaceColor shade_face(
     };
 }
 
+void ViewerState::advance(const double elapsed_seconds) noexcept
+{
+    if (paused || !is_finite(elapsed_seconds) || elapsed_seconds < 0.0
+        || !is_finite(speed_degrees)) {
+        return;
+    }
+    angle_radians += speed_degrees * kPi / 180.0 * elapsed_seconds;
+    if (!is_finite(angle_radians)) {
+        angle_radians = 0.0;
+    } else {
+        angle_radians = std::fmod(angle_radians, 2.0 * kPi);
+    }
+}
+
+void ViewerState::reset_orientation() noexcept
+{
+    angle_radians = 0.0;
+}
+
+void ViewerState::reset_view() noexcept
+{
+    angle_radians = 0.0;
+    speed_degrees = 30.0;
+    axis = {0.0, 1.0, 0.0};
+    paused = false;
+    wireframe = false;
+    lighting = true;
+    zoom = 1.0;
+    quit = false;
+}
+
+void ViewerState::apply(
+    const ViewerAction action,
+    const std::size_t solid_count
+)
+{
+    const auto rotate_axis = [this](const Vec3& edit_axis, const double radians) {
+        axis = Mat3::rotation_axis_angle(edit_axis, radians) * axis;
+        axis = axis.normalized();
+    };
+
+    switch (action) {
+    case ViewerAction::Quit:
+        quit = true;
+        break;
+    case ViewerAction::TogglePause:
+        paused = !paused;
+        break;
+    case ViewerAction::NextSolid:
+        if (solid_count > 0) {
+            solid_index = (solid_index + 1) % solid_count;
+        }
+        break;
+    case ViewerAction::PreviousSolid:
+        if (solid_count > 0) {
+            solid_index = (solid_index + solid_count - 1) % solid_count;
+        }
+        break;
+    case ViewerAction::AxisX:
+        axis = {1.0, 0.0, 0.0};
+        break;
+    case ViewerAction::AxisY:
+        axis = {0.0, 1.0, 0.0};
+        break;
+    case ViewerAction::AxisZ:
+        axis = {0.0, 0.0, 1.0};
+        break;
+    case ViewerAction::AzimuthDecrease:
+        rotate_axis({0.0, 1.0, 0.0}, -kAxisEditRadians);
+        break;
+    case ViewerAction::AzimuthIncrease:
+        rotate_axis({0.0, 1.0, 0.0}, kAxisEditRadians);
+        break;
+    case ViewerAction::ElevationDecrease: {
+        Vec3 tangent = cross({0.0, 1.0, 0.0}, axis);
+        if (tangent.length() <= 1.0e-12) {
+            tangent = {1.0, 0.0, 0.0};
+        } else {
+            tangent = tangent.normalized();
+        }
+        rotate_axis(tangent, -kAxisEditRadians);
+        break;
+    }
+    case ViewerAction::ElevationIncrease: {
+        Vec3 tangent = cross({0.0, 1.0, 0.0}, axis);
+        if (tangent.length() <= 1.0e-12) {
+            tangent = {1.0, 0.0, 0.0};
+        } else {
+            tangent = tangent.normalized();
+        }
+        rotate_axis(tangent, kAxisEditRadians);
+        break;
+    }
+    case ViewerAction::SpeedDecrease:
+        speed_degrees = std::max(kMinimumSpeed, speed_degrees - kSpeedStep);
+        break;
+    case ViewerAction::SpeedIncrease:
+        speed_degrees = std::min(kMaximumSpeed, speed_degrees + kSpeedStep);
+        break;
+    case ViewerAction::Reverse:
+        speed_degrees = -speed_degrees;
+        break;
+    case ViewerAction::ResetOrientation:
+        reset_orientation();
+        break;
+    case ViewerAction::ToggleWireframe:
+        wireframe = !wireframe;
+        break;
+    case ViewerAction::ToggleLighting:
+        lighting = !lighting;
+        break;
+    case ViewerAction::ZoomIn:
+        zoom = std::min(kMaximumZoom, zoom * 1.1);
+        break;
+    case ViewerAction::ZoomOut:
+        zoom = std::max(kMinimumZoom, zoom / 1.1);
+        break;
+    case ViewerAction::ResetView:
+        reset_view();
+        break;
+    }
+}
+
 bool Renderer::run(
     const Model& model,
     const std::string& solid_id,
@@ -278,7 +521,11 @@ bool Renderer::run(
         error = "renderer rotation parameters are invalid";
         return false;
     }
-    const Solid& solid = find_solid(model, solid_id);
+    if (model.solids.empty()) {
+        error = "renderer model contains no solids";
+        return false;
+    }
+    (void)find_solid(model, solid_id);
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         error = sdl_error("SDL_Init failed");
         return false;
@@ -303,20 +550,58 @@ bool Renderer::run(
         return false;
     }
 
-    const Vec3 axis = rotation_axis.normalized();
-    const Uint64 start_counter = SDL_GetPerformanceCounter();
+    ViewerState state;
+    state.speed_degrees = std::max(
+        kMinimumSpeed, std::min(kMaximumSpeed, speed_degrees)
+    );
+    state.axis = rotation_axis.normalized();
+    state.lighting = lighting_enabled;
+    const auto selected = std::find_if(
+        model.solids.begin(),
+        model.solids.end(),
+        [&](const Solid& solid) { return solid.id == solid_id; }
+    );
+    state.solid_index = static_cast<std::size_t>(
+        std::distance(model.solids.begin(), selected)
+    );
+
+    if (!SDL_SetWindowTitle(
+            window, window_title(model.solids[state.solid_index], state).c_str()
+        )) {
+        error = sdl_error("SDL_SetWindowTitle failed");
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return false;
+    }
+
+    Uint64 previous_counter = SDL_GetPerformanceCounter();
     const Uint64 frequency = SDL_GetPerformanceFrequency();
-    bool running = true;
     bool success = true;
-    while (running) {
+    double title_elapsed = kTitleUpdateSeconds;
+    while (!state.quit) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
-                running = false;
-            } else if (event.type == SDL_EVENT_KEY_DOWN
-                       && event.key.key == SDLK_ESCAPE) {
-                running = false;
+                state.apply(ViewerAction::Quit, model.solids.size());
+            } else if (event.type == SDL_EVENT_KEY_DOWN) {
+                ViewerAction action;
+                if (action_for_key(event.key.key, action)) {
+                    state.apply(action, model.solids.size());
+                }
             }
+        }
+
+        const Uint64 now = SDL_GetPerformanceCounter();
+        const double elapsed = frequency == 0
+            ? 0.0
+            : static_cast<double>(now - previous_counter)
+                / static_cast<double>(frequency);
+        previous_counter = now;
+        state.advance(elapsed);
+        title_elapsed += elapsed;
+        if (state.quit) {
+            break;
         }
 
         int pixel_width = width;
@@ -327,26 +612,34 @@ bool Renderer::run(
             success = false;
             break;
         }
-        const Uint64 now = SDL_GetPerformanceCounter();
-        const double elapsed =
-            frequency == 0
-                ? 0.0
-                : static_cast<double>(now - start_counter)
-                      / static_cast<double>(frequency);
-        const double angle =
-            speed_degrees * kPi / 180.0 * elapsed;
-        const Mat3 rotation = Mat3::rotation_axis_angle(axis, angle);
+        const double camera_distance = kCameraDistance / state.zoom;
+        const Mat3 rotation = Mat3::rotation_axis_angle(
+            state.axis, state.angle_radians
+        );
         if (!render_frame(
                 renderer,
-                solid,
+                model.solids[state.solid_index],
                 rotation,
                 pixel_width,
                 pixel_height,
                 error,
-                lighting_enabled
+                camera_distance,
+                state.lighting,
+                state.wireframe
             )) {
             success = false;
             break;
+        }
+        if (title_elapsed >= kTitleUpdateSeconds) {
+            if (!SDL_SetWindowTitle(
+                    window,
+                    window_title(model.solids[state.solid_index], state).c_str()
+                )) {
+                error = sdl_error("SDL_SetWindowTitle failed");
+                success = false;
+                break;
+            }
+            title_elapsed = 0.0;
         }
         SDL_Delay(1);
     }

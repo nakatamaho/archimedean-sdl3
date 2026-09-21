@@ -5,6 +5,7 @@
 bool test_json_and_model();
 bool test_math_and_projection();
 bool test_renderer_colors();
+bool test_viewer_state();
 
 int main()
 {
@@ -18,6 +19,10 @@ int main()
     }
     if (!test_renderer_colors()) {
         std::cerr << "renderer color test failed\n";
+        return 1;
+    }
+    if (!test_viewer_state()) {
+        std::cerr << "viewer state test failed\n";
         return 1;
     }
     if (!archview::core_schema_version_supported(archview::kSchemaVersion)) {

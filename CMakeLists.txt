@@ -72,6 +72,7 @@ add_executable(archview_tests
     tests/test_math.cpp
     tests/test_renderer.cpp
     tests/test_topology.cpp
+    tests/test_viewer_state.cpp
 )
 target_link_libraries(archview_tests
     PRIVATE

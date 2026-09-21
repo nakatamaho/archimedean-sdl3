@@ -28,6 +28,46 @@ struct FaceColor {
     bool lighting_enabled
 ) noexcept;
 
+enum class ViewerAction {
+    Quit,
+    TogglePause,
+    NextSolid,
+    PreviousSolid,
+    AxisX,
+    AxisY,
+    AxisZ,
+    AzimuthDecrease,
+    AzimuthIncrease,
+    ElevationDecrease,
+    ElevationIncrease,
+    SpeedDecrease,
+    SpeedIncrease,
+    Reverse,
+    ResetOrientation,
+    ToggleWireframe,
+    ToggleLighting,
+    ZoomIn,
+    ZoomOut,
+    ResetView,
+};
+
+struct ViewerState {
+    std::size_t solid_index{0};
+    double angle_radians{0.0};
+    double speed_degrees{30.0};
+    Vec3 axis{0.0, 1.0, 0.0};
+    bool paused{false};
+    bool wireframe{false};
+    bool lighting{true};
+    double zoom{1.0};
+    bool quit{false};
+
+    void apply(ViewerAction action, std::size_t solid_count);
+    void advance(double elapsed_seconds) noexcept;
+    void reset_orientation() noexcept;
+    void reset_view() noexcept;
+};
+
 class Renderer {
 public:
     [[nodiscard]] bool run(
