@@ -539,6 +539,16 @@ The remaining imports are Windows system DLLs such as `KERNEL32.dll`,
 than redistributable SDL3 or MinGW runtime DLLs. Native Windows runtime and
 display-backed GUI evidence remain deferred.
 
+The implementation and documentation for this follow-up are committed as:
+
+```text
+c45c175 fix: fully statically link MinGW runtime
+```
+
+GitHub Actions run `35588366875` passed both Ubuntu GCC/Ninja and Windows MSYS2
+UCRT64/Ninja. The Windows job also passed the complete-static import check for
+both executables.
+
 ## M9 evidence
 
 `.github/workflows/ci.yml` now defines Ubuntu GCC/Ninja and Windows MSYS2
