@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M4 — complete.
+Current milestone: M5 — complete.
 
 ## Dependency baseline
 
@@ -16,6 +16,7 @@ Current milestone: M4 — complete.
 - M2 — SageMath generator for all 13 solids.
 - M3 — independent CPython validator and canonical JSON data committed.
 - M4 — SDL-independent C++ model loader, topology validation, and math library.
+- M5 — SDL3 CPU-side filled polygon renderer with culling and depth sorting.
 
 ## Evidence
 
@@ -304,6 +305,45 @@ M4 implementation commit:
 ```text
 [main b934514] feat: add validated model loader and math library
  9 files changed, 843 insertions(+), 33 deletions(-)
+
+## M5 evidence
+
+The SDL renderer creates a resizable window, uses elapsed
+`SDL_GetPerformanceCounter()` time for arbitrary-axis rotation, transforms
+the selected model into positive-Z view space, culls faces whose outward
+normal points away from the camera, fan-triangulates only transient render
+vertices, sorts visible faces by depth from far to near, perspective-projects
+them, and submits the triangles through `SDL_RenderGeometry()`. Polygon
+faces in JSON remain unchanged.
+
+Headless regression commands:
+
+```sh
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+./build/archimedean_viewer --selftest --data data/archimedean.json
+SDL_VIDEODRIVER=offscreen SDL_RENDER_DRIVER=software timeout 2s ./build/archimedean_viewer --data data/archimedean.json --width 320 --height 240
+```
+
+Observed results:
+
+```text
+100% tests passed, 0 tests failed out of 3
+PASS: loaded 13 solids; selected truncated_icosahedron
+offscreen process exit=124 after timeout; it stayed in the render loop
+and emitted only host EGL permission warnings
+```
+
+The offscreen run proves startup and repeated frame execution but is not a
+visual-display PASS. This host has no `DISPLAY` or `WAYLAND_DISPLAY`, so a
+real interactive visual run remains deferred.
+
+M5 implementation commit:
+
+```text
+[main 040dcf2] feat: add SDL3 polygon renderer
+ 3 files changed, 293 insertions(+), 4 deletions(-)
+```
 ```
 ```
 ```

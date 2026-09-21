@@ -1,12 +1,11 @@
 # Handoff
 
-Next task: complete M5 only.
+Next task: complete M6 only.
 
-Implement the SDL3 window/renderer path for the default truncated icosahedron:
-CPU transforms, back-face culling, polygon fan triangulation at render time,
-back-to-front face sorting, perspective projection, and
-`SDL_RenderGeometry()`. Do not add shading or controls until M6/M7.
+Add view-space flat normals, ambient+diffuse Lambert shading, polygon-size
+palette colors, and the lighting toggle. Preserve the CPU renderer and record
+visual evidence separately from headless evidence.
 
-M0 through M4 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M5 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.
