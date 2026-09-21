@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <vector>
 
 namespace archview {
@@ -14,6 +15,9 @@ constexpr double kPi = 3.14159265358979323846;
 constexpr double kCameraDistance = 6.0;
 constexpr double kVerticalFov = 45.0 * kPi / 180.0;
 constexpr double kNearPlane = 0.1;
+constexpr double kAmbient = 0.25;
+constexpr double kDiffuse = 0.75;
+const Vec3 kLightDirection{-0.45, -0.65, -1.0};
 
 struct RenderFace {
     double depth{0.0};
@@ -42,13 +46,31 @@ Vec3 face_center(const Face& face, const std::vector<Vec3>& vertices)
     return center * (1.0 / static_cast<double>(face.indices.size()));
 }
 
+double clamp_unit(const double value) noexcept
+{
+    return std::max(0.0, std::min(1.0, value));
+}
+
+double safe_dot_unit(const Vec3& left, const Vec3& right) noexcept
+{
+    const double left_length = left.length();
+    const double right_length = right.length();
+    if (!left.finite() || !right.finite() || !is_finite(left_length)
+        || !is_finite(right_length) || left_length <= 1.0e-12
+        || right_length <= 1.0e-12) {
+        return 0.0;
+    }
+    return dot(left, right) / (left_length * right_length);
+}
+
 bool build_faces(
     const Solid& solid,
     const Mat3& rotation,
     double width,
     double height,
     std::vector<RenderFace>& output,
-    std::string& error
+    std::string& error,
+    const bool lighting_enabled
 )
 {
     std::vector<Vec3> view_vertices;
@@ -85,7 +107,15 @@ bool build_faces(
 
         RenderFace render_face;
         render_face.depth = center.z;
-        const SDL_FColor color{0.22f, 0.55f, 0.88f, 1.0f};
+        const FaceColor face_color = shade_face(
+            face.indices.size(), normal, kLightDirection, lighting_enabled
+        );
+        const SDL_FColor color{
+            static_cast<float>(face_color.red),
+            static_cast<float>(face_color.green),
+            static_cast<float>(face_color.blue),
+            static_cast<float>(face_color.alpha),
+        };
         for (std::size_t index = 1; index + 1 < projected.size(); ++index) {
             const int base = static_cast<int>(render_face.vertices.size());
             const auto add_vertex = [&](const ProjectedPoint& point) {
@@ -127,7 +157,8 @@ bool render_frame(
     const Mat3& rotation,
     int width,
     int height,
-    std::string& error
+    std::string& error,
+    const bool lighting_enabled
 )
 {
     if (!SDL_SetRenderDrawColor(renderer, 12, 16, 24, SDL_ALPHA_OPAQUE)
@@ -143,7 +174,8 @@ bool render_frame(
             static_cast<double>(width),
             static_cast<double>(height),
             faces,
-            error
+            error,
+            lighting_enabled
         )) {
         return false;
     }
@@ -174,6 +206,58 @@ std::string sdl_error(const char* action)
 
 }  // namespace
 
+FaceColor polygon_base_color(const std::size_t side_count) noexcept
+{
+    switch (side_count) {
+    case 3:
+        return {0.90, 0.30, 0.24, 1.0};
+    case 4:
+        return {0.24, 0.60, 0.95, 1.0};
+    case 5:
+        return {0.28, 0.78, 0.42, 1.0};
+    case 6:
+        return {0.92, 0.58, 0.18, 1.0};
+    case 8:
+        return {0.66, 0.38, 0.86, 1.0};
+    case 10:
+        return {0.16, 0.78, 0.78, 1.0};
+    default:
+        return {0.62, 0.64, 0.68, 1.0};
+    }
+}
+
+double lambert_intensity(
+    const Vec3& normal,
+    const Vec3& light_direction,
+    const bool lighting_enabled
+) noexcept
+{
+    if (!lighting_enabled) {
+        return 1.0;
+    }
+    const double cosine = std::max(0.0, safe_dot_unit(normal, light_direction));
+    return clamp_unit(kAmbient + kDiffuse * cosine);
+}
+
+FaceColor shade_face(
+    const std::size_t side_count,
+    const Vec3& normal,
+    const Vec3& light_direction,
+    const bool lighting_enabled
+) noexcept
+{
+    const FaceColor base = polygon_base_color(side_count);
+    const double intensity = lambert_intensity(
+        normal, light_direction, lighting_enabled
+    );
+    return {
+        clamp_unit(base.red * intensity),
+        clamp_unit(base.green * intensity),
+        clamp_unit(base.blue * intensity),
+        base.alpha,
+    };
+}
+
 bool Renderer::run(
     const Model& model,
     const std::string& solid_id,
@@ -181,7 +265,8 @@ bool Renderer::run(
     const int height,
     const Vec3& rotation_axis,
     const double speed_degrees,
-    std::string& error
+    std::string& error,
+    const bool lighting_enabled
  ) const
 {
     if (width <= 0 || height <= 0) {
@@ -257,7 +342,8 @@ bool Renderer::run(
                 rotation,
                 pixel_width,
                 pixel_height,
-                error
+                error,
+                lighting_enabled
             )) {
             success = false;
             break;

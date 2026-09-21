@@ -70,11 +70,12 @@ target_link_libraries(archimedean_viewer
 add_executable(archview_tests
     tests/test_json.cpp
     tests/test_math.cpp
+    tests/test_renderer.cpp
     tests/test_topology.cpp
 )
 target_link_libraries(archview_tests
     PRIVATE
-        archview_core
+        archview_renderer
 )
 target_compile_definitions(archview_tests
     PRIVATE
