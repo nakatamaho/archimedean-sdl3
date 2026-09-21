@@ -70,14 +70,14 @@ environment. The supported CMake cross-toolchain path is:
 cmake -S . -B build-mingw -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake \
-  -DSDL_SHARED=ON -DSDL_STATIC=OFF
+  -DSDL_SHARED=OFF -DSDL_STATIC=ON
 cmake --build build-mingw --parallel
 ```
 
-When SDL is built shared, CMake copies `SDL3.dll` beside
-`archimedean_viewer.exe`; distribute them together. A MinGW cross-compile is
-not native Windows runtime evidence. See [`docs/status.md`](docs/status.md)
-for the current platform evidence and limitations.
+The MinGW configuration statically links SDL3, so it does not require an
+adjacent `SDL3.dll`. A MinGW cross-compile is not native Windows runtime
+evidence. See [`docs/status.md`](docs/status.md) for the current platform
+evidence and limitations.
 
 ## SageMath generation
 

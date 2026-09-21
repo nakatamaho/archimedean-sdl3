@@ -69,7 +69,9 @@ jobs:
             mingw-w64-ucrt-x86_64-python
 
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+        run: >-
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
 
       - name: Build
         run: cmake --build build --parallel

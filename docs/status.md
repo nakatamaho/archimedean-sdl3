@@ -19,7 +19,7 @@ Current milestone: M10 — complete.
 - M5 — SDL3 CPU-side filled polygon renderer with culling and depth sorting.
 - M6 — flat Lambert shading, polygon-size palette, and testable lighting path.
 - M7 — keyboard controls, dynamic solid cycling, view state, wireframe overlay, and title status.
-- M8 — MinGW-w64 cross-build, PE artifacts, adjacent SDL3 DLL, and Wine compatibility checks.
+- M8 — MinGW-w64 cross-build with statically linked SDL3 and Wine compatibility checks.
 - M9 — Ubuntu and Windows/MSYS2 GitHub Actions validation jobs.
 - M10 — fresh-clone release QA, deterministic regeneration check, release checklist, and final documentation.
 
@@ -448,20 +448,22 @@ M7 implementation commit:
 ## M8 evidence
 
 The host provides `x86_64-w64-mingw32-g++` GCC 13-win32 and
-`x86_64-w64-mingw32-windres`. The existing CMake toolchain file configured a
-Windows x86_64 build with vendored SDL3 shared, and the post-build rule copied
-`SDL3.dll` beside the viewer executable. The cross-build also produced the
+`x86_64-w64-mingw32-windres`. The CMake toolchain and MinGW configuration now
+select vendored SDL3 static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`), so the viewer
+does not import or require `SDL3.dll`. The cross-build also produced the
 headless test executable.
 
 Exact cross-build and artifact commands:
 
 ```sh
-cmake --fresh -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=ON -DSDL_STATIC=OFF
-cmake --build build-mingw --parallel 2
-file build-mingw/archimedean_viewer.exe build-mingw/archview_tests.exe build-mingw/SDL3.dll
-test -f build-mingw/archimedean_viewer.exe
-test -f build-mingw/archview_tests.exe
-test -f build-mingw/SDL3.dll
+cmake --fresh -S . -B build-mingw-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-mingw-static --parallel 2
+file build-mingw-static/archimedean_viewer.exe build-mingw-static/archview_tests.exe
+test -f build-mingw-static/archimedean_viewer.exe
+test -f build-mingw-static/archview_tests.exe
+test -f build-mingw-static/external/SDL/libSDL3.a
+test ! -e build-mingw-static/SDL3.dll
+if objdump -p build-mingw-static/archimedean_viewer.exe | grep -Fqi 'SDL3.dll'; then exit 1; else echo 'PASS: viewer has no SDL3.dll import'; fi
 ```
 
 Observed results:
@@ -469,16 +471,17 @@ Observed results:
 ```text
 PE32+ executable for MS Windows, x86-64: archimedean_viewer.exe
 PE32+ executable for MS Windows, x86-64: archview_tests.exe
-PE32+ executable for MS Windows, x86-64: SDL3.dll
-PASS: MinGW artifacts and adjacent SDL3.dll present
+SDL_SHARED:BOOL=OFF
+SDL_STATIC:BOOL=ON
+PASS: static libSDL3.a present and viewer has no SDL3.dll import
 ```
 
 The Windows binaries were additionally exercised under the host's Wine
 compatibility layer:
 
 ```sh
-WINEDEBUG=-all wine ./build-mingw/archimedean_viewer.exe --selftest --data data/archimedean.json
-WINEDEBUG=-all wine ./build-mingw/archview_tests.exe
+WINEDEBUG=-all wine ./build-mingw-static/archimedean_viewer.exe --selftest --data data/archimedean.json
+WINEDEBUG=-all wine ./build-mingw-static/archview_tests.exe
 ```
 
 Both returned zero and printed their PASS lines. Wine is not a native Windows
@@ -490,6 +493,7 @@ M8 documentation commit:
 
 ```text
 MinGW compiler: x86_64-w64-mingw32-g++ (GCC 13-win32)
+SDL3 linkage: static (`SDL_SHARED=OFF`, `SDL_STATIC=ON`)
 cross-build: PASS
 native Windows runtime: DEFERRED
 ```
