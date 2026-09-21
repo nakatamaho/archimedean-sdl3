@@ -88,3 +88,14 @@ Observed commit result:
 Immediately after that commit, `git status --short --branch` reported
 `## main...origin/main [ahead 1]`, and `git log -1 --oneline` reported
 `7fd97d1 docs: bootstrap repository`.
+
+Publication evidence for the documentation and evidence commits:
+
+```sh
+git push origin main
+```
+
+```text
+To https://github.com/nakatamaho/archimedean-sdl3.git
+   de4385c..ba144d9  main -> main
+```
