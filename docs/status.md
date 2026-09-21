@@ -936,5 +936,15 @@ that cannot execute through the Linux host shell; direct Wine execution covers
 those binaries. Native Windows runtime and visual GUI evidence remain
 deferred as before.
 
-The v1.3 feature commit was pushed to `main`; the published v1.2.0 release was
-not replaced by this feature-only change.
+GitHub Actions CI run `35600041065` passed for the pushed v1.3 changes:
+
+```text
+Ubuntu GCC/Ninja: PASS
+Windows MSYS2 UCRT64/Ninja: PASS
+macOS x86_64/CMake: PASS
+macOS arm64/CMake: PASS
+```
+
+The run executed CTest, committed-JSON validation, and the headless viewer
+self-test in every platform job. It provided no display-backed visual evidence.
+The published v1.2.0 release was not replaced by this feature-only change.
