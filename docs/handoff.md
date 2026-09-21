@@ -1,11 +1,12 @@
 # Handoff
 
-Next task: complete M9 only.
+Next task: complete M10 only.
 
-Add Ubuntu and Windows/MSYS2 MinGW GitHub Actions jobs. CI should build the
-viewer and tests, run CTest, the CPython validator, and `--selftest`; it must
-not require SageMath regeneration or claim GUI evidence.
+Perform fresh-clone release QA, regenerate and compare canonical JSON from the
+documented Sage environment, finish README/release-checklist documentation,
+and record remaining display/native-Windows evidence as deferred if this host
+still cannot provide it.
 
-M0 through M8 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M9 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.

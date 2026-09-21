@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M8 — complete.
+Current milestone: M9 — complete.
 
 ## Dependency baseline
 
@@ -20,6 +20,7 @@ Current milestone: M8 — complete.
 - M6 — flat Lambert shading, polygon-size palette, and testable lighting path.
 - M7 — keyboard controls, dynamic solid cycling, view state, wireframe overlay, and title status.
 - M8 — MinGW-w64 cross-build, PE artifacts, adjacent SDL3 DLL, and Wine compatibility checks.
+- M9 — Ubuntu and Windows/MSYS2 GitHub Actions validation jobs.
 
 ## Evidence
 
@@ -490,5 +491,44 @@ M8 documentation commit:
 MinGW compiler: x86_64-w64-mingw32-g++ (GCC 13-win32)
 cross-build: PASS
 native Windows runtime: DEFERRED
+```
+
+## M9 evidence
+
+`.github/workflows/ci.yml` now defines Ubuntu GCC/Ninja and Windows MSYS2
+UCRT64/Ninja jobs. Both recursively check out the SDL3 and nlohmann/json
+submodules, configure Release builds, build the viewer and headless tests, run
+CTest, validate the committed JSON with CPython, and run viewer `--selftest`.
+Neither job attempts SageMath regeneration or claims visual correctness.
+
+The first pushed workflow run exposed a runner-image dependency gap: Ubuntu
+SDL configuration stopped because neither X11 nor Wayland development headers
+were installed. The Windows job passed. The workflow was corrected to install
+the SDL Linux window-development packages before configuration.
+
+Exact remote CI evidence:
+
+```sh
+gh run view 35579051126 --json status,conclusion,jobs
+gh run view 35579502458 --json status,conclusion,jobs
+```
+
+Observed final result for run `35579502458`:
+
+```text
+Ubuntu GCC/Ninja: success
+Windows MSYS2 UCRT64/Ninja: success
+workflow conclusion: success
+```
+
+The earlier run `35579051126` is retained as a documented failed
+configuration attempt; it was not relabeled as a pass. Headless CI remains
+non-visual evidence.
+
+M9 implementation commits:
+
+```text
+[main 32d38c9] ci: add Linux and Windows validation jobs
+[main ba585d5] ci: install SDL Linux window dependencies
 ```
 ```
