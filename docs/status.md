@@ -498,6 +498,10 @@ cross-build: PASS
 native Windows runtime: DEFERRED
 ```
 
+The post-change GitHub Actions run `35586772349` also passed both Ubuntu
+GCC/Ninja and Windows MSYS2 UCRT64/Ninja jobs; the Windows job used the static
+SDL3 configuration.
+
 ## M9 evidence
 
 `.github/workflows/ci.yml` now defines Ubuntu GCC/Ninja and Windows MSYS2
