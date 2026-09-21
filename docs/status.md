@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M0 — complete.
+Current milestone: M1 — complete.
 
 ## Dependency baseline
 
@@ -12,6 +12,7 @@ Current milestone: M0 — complete.
 ## Completed work
 
 - M0 — repository bootstrap and documentation scaffold committed.
+- M1 — vendored dependency and CMake/headless executable baseline committed.
 
 ## Evidence
 
@@ -98,4 +99,54 @@ git push origin main
 ```text
 To https://github.com/nakatamaho/archimedean-sdl3.git
    de4385c..ba144d9  main -> main
+
+## M1 evidence
+
+Pinned submodules:
+
+```text
+$ git submodule status --recursive
+ fa2c02bb6e21974a89ea9824bc53c9932abe5f9c external/SDL (release-3.4.16)
+ 55f93686c01528224f448c19128836e7df245f72 external/json (v3.12.0)
+```
+
+The vendored CMake path defines `archview_core`, `archview_renderer`,
+`archimedean_viewer`, and `archview_tests`, plus the optional
+`ARCHVIEW_USE_SYSTEM_DEPS` mode and
+`cmake/mingw-w64-x86_64.cmake`.
+
+Linux configure/build/test commands:
+
+```sh
+cmake --fresh -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+./build/archimedean_viewer --help
+./build/archimedean_viewer --selftest
+./build/archview_tests
+```
+
+Observed results:
+
+```text
+-- Configuring done
+-- Generating done
+-- Build files have been written to: .../build
+100% tests passed, 0 tests failed out of 1
+PASS: M1 headless executable skeleton
+PASS: archview_tests
+```
+
+The build and test commands exited successfully. The build used vendored SDL
+and nlohmann/json. The system-dependency mode was not run because this host
+does not provide system SDL3/json packages. The MinGW toolchain file exists;
+cross-build evidence is deferred to M8, and no native Windows runtime claim is
+made.
+
+M1 implementation commit:
+
+```text
+[main 92b40c2] build: establish CMake and SDL baseline
+ 15 files changed, 302 insertions(+)
+```
 ```

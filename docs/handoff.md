@@ -1,11 +1,11 @@
 # Handoff
 
-Next task: complete M1 only.
+Next task: complete M2 only.
 
-Pin SDL 3.4.16 and nlohmann/json 3.12.0, add the CMake/headless executable
-skeleton, and record exact build/test evidence. Do not start M2.
+Implement the SageMath generator for all 13 solids, preserve polygon faces,
+validate topology/geometry, and verify deterministic output. Do not start M3
+until generator evidence is complete.
 
-M0 evidence is recorded in `docs/status.md`. The public remote is
+M0 and M1 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.
-
