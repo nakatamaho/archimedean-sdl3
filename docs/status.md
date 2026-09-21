@@ -63,3 +63,28 @@ The documentation scaffold was added locally and is committed in the M0
 scaffold commit. No implementation code, dependencies, generated JSON, or CI
 was added.
 
+Local commit evidence:
+
+```sh
+git add .gitignore AGENTS.md CODEX.md README.md docs
+git commit -m "docs: bootstrap repository"
+```
+
+Observed commit result:
+
+```text
+[main 7fd97d1] docs: bootstrap repository
+ 8 files changed, 905 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 AGENTS.md
+ create mode 100644 CODEX.md
+ create mode 100644 README.md
+ create mode 100644 docs/handoff.md
+ create mode 100644 docs/milestones.md
+ create mode 100644 docs/spec.md
+ create mode 100644 docs/status.md
+```
+
+Immediately after that commit, `git status --short --branch` reported
+`## main...origin/main [ahead 1]`, and `git log -1 --oneline` reported
+`7fd97d1 docs: bootstrap repository`.
