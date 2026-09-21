@@ -216,6 +216,54 @@ M2 implementation commit:
 ```text
 [main 61b3e5d] feat: add SageMath Archimedean generator
  2 files changed, 461 insertions(+)
+
+## M3 evidence
+
+The independent validator in `tools/validate_archimedean.py` uses only
+CPython's standard `json`, `math`, and `argparse` modules plus the pure
+expected-combinatorics table. It rejects non-finite JSON constants, validates
+the schema, all 13 solids, polygon topology, explicit edges, geometric
+normalization, planarity, outward winding, and statistics.
+
+The canonical artifact was regenerated from the SageMath generator and then
+validated without Sage:
+
+```sh
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output data/archimedean.json
+python3 tools/validate_archimedean.py data/archimedean.json
+python3 tools/test_validate_archimedean.py
+```
+
+Observed results:
+
+```text
+generated 13 solids at data/archimedean.json
+PASS: validated 13 solids
+PASS: rejected bad-index
+PASS: rejected missing-manifold-edge
+PASS: rejected wrong-count
+PASS: rejected nan-coordinate
+PASS: valid canonical document remains accepted
+```
+
+The four negative cases cover an invalid vertex index, missing explicit
+manifold edge, incorrect statistics, and NaN-like JSON input. CTest also
+executes the validator and negative suite:
+
+```text
+100% tests passed, 0 tests failed out of 3
+```
+
+The committed JSON contains exactly 13 solids and preserves polygon faces;
+triangulation is not present in the data artifact. Python bytecode is ignored
+and absent from the commit.
+
+M3 implementation commit:
+
+```text
+[main 45e891f] feat: validate and commit canonical solid data
+ 6 files changed, 10253 insertions(+), 1 deletion(-)
+```
 ```
 ```
 ```

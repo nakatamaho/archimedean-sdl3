@@ -1,12 +1,11 @@
 # Handoff
 
-Next task: complete M3 only.
+Next task: complete M4 only.
 
-Add the independent CPython validator, commit the canonical
-`data/archimedean.json`, and add corrupt-data negative tests. Preserve the
-generator output byte-for-byte and do not start M4 until validator evidence is
-complete.
+Implement the SDL-independent C++ model loader and 3D math library, validate
+all 13 committed solids at runtime, and add headless unit tests for vectors,
+matrices/axis-angle rotation, topology, invalid schemas, and projection.
 
-M0, M1, and M2 evidence is recorded in `docs/status.md`. The public remote is
+M0 through M3 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.
