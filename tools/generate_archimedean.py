@@ -317,6 +317,16 @@ def _generate_solid(solid_id: str, constructor: Callable[[], object]) -> dict[st
         "display_name": EXPECTED_SOLIDS[solid_id]["display_name"],
         "vertices": [[value for value in vertex] for vertex in coordinates],
         "faces": [list(face) for face in faces],
+        "edges": [
+            list(edge)
+            for edge in sorted(
+                {
+                    tuple(sorted((face[index], face[(index + 1) % len(face)])))
+                    for face in faces
+                    for index in range(len(face))
+                }
+            )
+        ],
         "statistics": statistics,
     }
 

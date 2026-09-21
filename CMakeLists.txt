@@ -87,6 +87,20 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME archview_tests COMMAND archview_tests)
+    find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    add_test(
+        NAME archview_validator
+        COMMAND
+            ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/validate_archimedean.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/data/archimedean.json"
+    )
+    add_test(
+        NAME archview_validator_negative
+        COMMAND
+            ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/test_validate_archimedean.py"
+    )
 endif()
 
 if(WIN32 AND TARGET SDL3::SDL3-shared)

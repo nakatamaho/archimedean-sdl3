@@ -16,8 +16,9 @@ cmake-build-*/
 .vscode/
 .idea/
 compile_commands.json
+__pycache__/
+*.pyc
 
 # Local files
 .DS_Store
 *.swp
-
