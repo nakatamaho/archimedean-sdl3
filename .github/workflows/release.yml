@@ -246,7 +246,7 @@ jobs:
           tar -czf "release/archimedean-sdl3-${RELEASE_TAG}-macos-universal.tar.gz" \
             -C release ArchimedeanViewer.app LICENSE README.md
           cp incoming/linux/*.tar.gz incoming/mingw/*.tar.gz release/
-          shasum -a 256 release/*.tar.gz > release/SHA256SUMS
+          (cd release && shasum -a 256 *.tar.gz > SHA256SUMS)
           cat release/SHA256SUMS
 
       - name: Create GitHub release
