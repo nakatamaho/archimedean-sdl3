@@ -26,9 +26,14 @@ struct ExpectedSolid {
     std::map<std::size_t, std::size_t> face_histogram;
 };
 
-const std::array<ExpectedSolid, 13>& expected_solids()
+const std::array<ExpectedSolid, 18>& expected_solids()
 {
-    static const std::array<ExpectedSolid, 13> values{{
+    static const std::array<ExpectedSolid, 18> values{{
+        {"tetrahedron", "Tetrahedron", 4, 6, 4, {{3, 4}}},
+        {"cube", "Cube", 8, 12, 6, {{4, 6}}},
+        {"octahedron", "Octahedron", 6, 12, 8, {{3, 8}}},
+        {"dodecahedron", "Dodecahedron", 20, 30, 12, {{5, 12}}},
+        {"icosahedron", "Icosahedron", 12, 30, 20, {{3, 20}}},
         {"truncated_tetrahedron", "Truncated tetrahedron", 12, 18, 8, {{3, 4}, {6, 4}}},
         {"cuboctahedron", "Cuboctahedron", 12, 24, 14, {{3, 8}, {4, 6}}},
         {"truncated_cube", "Truncated cube", 24, 36, 14, {{3, 8}, {8, 6}}},
@@ -427,7 +432,7 @@ Model load_model_json(const nlohmann::json& document)
         const auto& solids = document.at("solids");
         require(solids.is_array(), "document.solids", "solids must be an array");
         require(solids.size() == expected_solids().size(), "document.solids",
-                "expected exactly 13 solids");
+                "expected exactly 18 solids");
 
         Model model{schema_version, sage_version.get<std::string>(), {}};
         for (std::size_t position = 0; position < solids.size(); ++position) {

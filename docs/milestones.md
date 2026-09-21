@@ -2,13 +2,17 @@
 
 Complete milestones in order. Do not start a second milestone in the same `/goal` run.
 
+M0 through M10 define the original v1 implementation. The v1.2 extension
+keeps those milestones complete and expands the canonical data set from the 13
+Archimedean solids to 18 regular solids by adding the five Platonic solids.
+
 | Milestone | Goal | Acceptance | Difficulty |
 |---|---|---|---|
 | M0 | Create public GitHub repository and documentation scaffold | Remote exists, main branch exists, BSD-2-Clause license present, docs committed, clean worktree | Low |
 | M1 | Pin dependencies and establish CMake/headless executable skeleton | SDL 3.4.16 and nlohmann/json 3.12.0 pinned as submodules; Linux and MinGW configuration paths exist; `--help` and `--selftest` skeleton build | Medium |
-| M2 | Implement SageMath generator for all 13 solids | `sage -python tools/generate_archimedean.py` produces JSON; all combinatorial/topological checks pass; repeated generation is deterministic | High |
+| M2 | Implement SageMath generator for all 18 regular solids | `sage -python tools/generate_archimedean.py` produces JSON; all combinatorial/topological checks pass; repeated generation is deterministic | High |
 | M3 | Add independent CPython JSON validator and commit canonical data | `data/archimedean.json` committed; validator passes without Sage; corrupt-data negative tests exist | Medium |
-| M4 | Implement C++ model loader and math library | All 13 solids load; topology validated; vector/matrix/axis-angle/projection unit tests pass headlessly | Medium |
+| M4 | Implement C++ model loader and math library | All 18 solids load; topology validated; vector/matrix/axis-angle/projection unit tests pass headlessly | Medium |
 | M5 | First SDL3 filled rotating solid | Linux interactive window renders one selected solid with filled faces, projection, back-face culling, face depth ordering | Medium |
 | M6 | Flat Lambert shading and polygon palette | Face normals correct; face colors vary by polygon size and illumination; lighting toggle works | Medium |
 | M7 | Runtime controls | solid cycling, arbitrary rotation axis, speed, pause, reverse, reset, zoom, wireframe toggle and title status all work | Medium |
@@ -55,7 +59,8 @@ Linux configure/build + CTest. If Windows/MinGW is not available yet, compile-pa
 
 ### Work
 
-- Implement exactly 13 constructors.
+- Implement exactly 18 constructors: five Platonic solids and 13 Archimedean
+  solids.
 - Normalize, cyclically order faces, enforce outward winding, canonicalize numbering/order.
 - Validate V/E/F, histogram, manifold edges, Euler relation, planarity, edge equality, finiteness.
 - Record SageMath version in JSON.
@@ -156,4 +161,3 @@ Add Ubuntu and Windows/MSYS2 MinGW jobs. Pin action major versions. Checkout sub
 - Regenerate JSON from documented SageMath environment and compare.
 - Update README and handoff.
 - Tag only after all non-deferred release gates pass.
-

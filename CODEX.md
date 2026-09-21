@@ -4,7 +4,7 @@
 
 Create a public GitHub repository named `archimedean-sdl3` containing:
 
-1. a SageMath-based Python generator for the 13 Archimedean solids;
+1. a SageMath-based Python generator for five Platonic and 13 Archimedean solids;
 2. deterministic polygon data in `data/archimedean.json`;
 3. a portable C++17 SDL3 viewer for Linux and Windows/MinGW-w64;
 4. filled polygon rendering with flat Lambert shading;
@@ -17,7 +17,7 @@ The polygon data is the canonical artifact. Preserve the original polygon faces.
 
 Do not add OpenGL, Vulkan, Direct3D, SDL_gpu, Dear ImGui, SDL_ttf, physics, texture mapping, mesh editing, arbitrary OBJ/glTF import, or macOS support in v1. Do not introduce a custom GPU shader language in v1.
 
-The initial renderer must use SDL3's ordinary renderer API and `SDL_RenderGeometry()` after CPU-side 3D transformation, culling, lighting, projection, and depth sorting.
+The initial renderer must use SDL3's ordinary renderer API and `SDL_RenderGeometry()` after CPU-side 3D transformation, culling, lighting, projection, and depth sorting. The v1.2 release adds native macOS packaging without changing the renderer architecture.
 
 ## 3. Repository creation
 
@@ -119,21 +119,27 @@ Do not create extra architecture layers without a demonstrated need.
 sage -python tools/generate_archimedean.py --output data/archimedean.json
 ```
 
-It must generate exactly these 13 solids:
+It must generate exactly these 18 regular solids, with the five Platonic
+solids listed first in the canonical order:
 
-1. truncated tetrahedron
-2. cuboctahedron
-3. truncated cube
-4. truncated octahedron
-5. rhombicuboctahedron
-6. truncated cuboctahedron
-7. snub cube
-8. icosidodecahedron
-9. truncated dodecahedron
-10. truncated icosahedron
-11. rhombicosidodecahedron
-12. truncated icosidodecahedron
-13. snub dodecahedron
+1. tetrahedron
+2. cube
+3. octahedron
+4. dodecahedron
+5. icosahedron
+6. truncated tetrahedron
+7. cuboctahedron
+8. truncated cube
+9. truncated octahedron
+10. rhombicuboctahedron
+11. truncated cuboctahedron
+12. snub cube
+13. icosidodecahedron
+14. truncated dodecahedron
+15. truncated icosahedron
+16. rhombicosidodecahedron
+17. truncated icosidodecahedron
+18. snub dodecahedron
 
 Use SageMath `polytopes` constructors. The snub dodecahedron must use `base_ring=AA` and the Normaliz backend when required by the installed SageMath version.
 
@@ -187,7 +193,7 @@ Numbers in `vertices` are JSON floating-point numbers. Use sufficient digits for
 
 Generation must fail nonzero if any check fails:
 
-- exactly 13 solids;
+- exactly 18 solids;
 - expected V/E/F counts;
 - expected polygon-size histogram;
 - Euler characteristic `V - E + F == 2`;
@@ -232,7 +238,7 @@ Default rotation axis: normalized `(0,1,0)`.
 Default angular speed: `30 deg/s`.
 Default window: `1000 x 800`, resizable.
 
-`--selftest` must not create a window. It must load the JSON, verify all 13 solids, exercise representative math/projection paths, and return 0 only on success.
+`--selftest` must not create a window. It must load the JSON, verify all 18 solids, exercise representative math/projection paths, and return 0 only on success.
 
 ## 9. Renderer design
 
@@ -459,4 +465,3 @@ Before implementation:
 8. stop.
 
 If a required external dependency, authentication, display, or platform is unavailable, record the blocker. Never relabel unavailable evidence as PASS.
-

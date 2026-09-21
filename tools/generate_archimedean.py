@@ -279,6 +279,11 @@ def _validate_solid(
 
 def _constructors() -> dict[str, Callable[[], object]]:
     return {
+        "tetrahedron": lambda: polytopes.tetrahedron(),
+        "cube": lambda: polytopes.cube(),
+        "octahedron": lambda: polytopes.octahedron(),
+        "dodecahedron": lambda: polytopes.dodecahedron(exact=True),
+        "icosahedron": lambda: polytopes.icosahedron(exact=True),
         "truncated_tetrahedron": lambda: polytopes.truncated_tetrahedron(),
         "cuboctahedron": lambda: polytopes.cuboctahedron(),
         "truncated_cube": lambda: polytopes.truncated_cube(exact=True),

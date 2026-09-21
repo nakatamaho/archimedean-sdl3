@@ -1,10 +1,10 @@
 # archimedean-sdl3
 
-`archimedean-sdl3` is a small, portable viewer for all 13 Archimedean solids.
-SageMath is used only to generate the canonical geometry. The committed JSON
-preserves polygon faces, while the C++17 SDL3 viewer performs CPU-side
-transforms, culling, Lambert shading, depth ordering, and render-time fan
-triangulation.
+`archimedean-sdl3` is a small, portable viewer for 18 regular solids: the five
+Platonic solids and all 13 Archimedean solids. SageMath is used only to
+generate the canonical geometry. The committed JSON preserves polygon faces,
+while the C++17 SDL3 viewer performs CPU-side transforms, culling, Lambert
+shading, depth ordering, and render-time fan triangulation.
 
 ## Screenshot
 
@@ -18,6 +18,11 @@ The canonical artifact contains these IDs, in deterministic order:
 
 | ID | Solid |
 | --- | --- |
+| `tetrahedron` | Tetrahedron |
+| `cube` | Cube (hexahedron) |
+| `octahedron` | Octahedron |
+| `dodecahedron` | Dodecahedron |
+| `icosahedron` | Icosahedron |
 | `truncated_tetrahedron` | Truncated tetrahedron |
 | `cuboctahedron` | Cuboctahedron |
 | `truncated_cube` | Truncated cube |
@@ -100,9 +105,15 @@ ctest --test-dir build --output-on-failure
 open build/archimedean_viewer.app
 ```
 
-The `v1.0.0` release provides a universal macOS application archive for both
-Intel and Apple Silicon. The archive is unsigned; macOS may require the user
-to approve it in Privacy & Security before opening it.
+The `v1.2.0` release provides these archives:
+
+- [macOS universal](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-macos-universal.tar.gz), with SDL3 statically linked;
+- [Linux x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-linux-x86_64.tar.gz), with SDL3 statically linked (system graphics/audio libraries remain operating-system dependencies);
+- [MinGW x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-mingw-x86_64.tar.gz), fully static for SDL3 and the GCC/C++ runtime (Windows system DLLs remain operating-system dependencies).
+
+The archives are unsigned and the macOS bundle is not notarized; macOS may
+require the user to approve it in Privacy & Security before opening it. The
+release checksums are in [`SHA256SUMS`](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/SHA256SUMS).
 
 ## SageMath generation
 
@@ -150,7 +161,7 @@ paused/running state.
 
 ## Data and rendering
 
-Schema version 1 contains generator metadata and exactly 13 solids. Each solid
+Schema version 1 contains generator metadata and exactly 18 solids. Each solid
 has finite normalized vertices, explicit polygon `faces`, explicit combinatorial
 `edges`, and `statistics` containing V/E/F and the face-size histogram. The
 CPython validator and C++ loader independently check counts, Euler

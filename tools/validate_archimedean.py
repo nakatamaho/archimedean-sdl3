@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the canonical Archimedean-solid JSON with ordinary CPython."""
+"""Validate the canonical regular-solid JSON with ordinary CPython."""
 
 from __future__ import annotations
 

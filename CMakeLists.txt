@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(archimedean_sdl3 VERSION 1.0.0 LANGUAGES CXX)
+project(archimedean_sdl3 VERSION 1.2.0 LANGUAGES CXX)
 
 option(ARCHVIEW_USE_SYSTEM_DEPS
        "Use system-installed SDL3 and nlohmann_json packages"

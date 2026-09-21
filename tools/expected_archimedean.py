@@ -1,6 +1,41 @@
-"""Expected combinatorics for the v1 Archimedean-solid data set."""
+"""Expected combinatorics for the v1.2 regular-solid data set."""
 
 EXPECTED_SOLIDS = {
+    "tetrahedron": {
+        "display_name": "Tetrahedron",
+        "vertices": 4,
+        "edges": 6,
+        "faces": 4,
+        "face_histogram": {"3": 4},
+    },
+    "cube": {
+        "display_name": "Cube",
+        "vertices": 8,
+        "edges": 12,
+        "faces": 6,
+        "face_histogram": {"4": 6},
+    },
+    "octahedron": {
+        "display_name": "Octahedron",
+        "vertices": 6,
+        "edges": 12,
+        "faces": 8,
+        "face_histogram": {"3": 8},
+    },
+    "dodecahedron": {
+        "display_name": "Dodecahedron",
+        "vertices": 20,
+        "edges": 30,
+        "faces": 12,
+        "face_histogram": {"5": 12},
+    },
+    "icosahedron": {
+        "display_name": "Icosahedron",
+        "vertices": 12,
+        "edges": 30,
+        "faces": 20,
+        "face_histogram": {"3": 20},
+    },
     "truncated_tetrahedron": {
         "display_name": "Truncated tetrahedron",
         "vertices": 12,

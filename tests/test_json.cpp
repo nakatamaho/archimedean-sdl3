@@ -28,7 +28,7 @@ bool throws_model_error(const std::function<void()>& action)
 bool test_json_and_model()
 {
     const archview::Model model = archview::load_model_file(data_path());
-    if (model.schema_version != 1 || model.solids.size() != 13) {
+    if (model.schema_version != 1 || model.solids.size() != 18) {
         return false;
     }
     if (archview::find_solid(model, "truncated_icosahedron").faces.size() != 32) {
@@ -54,7 +54,7 @@ bool test_json_and_model()
         archview::kEmbeddedModelJson,
         "embedded canonical model"
     );
-    if (embedded.schema_version != 1 || embedded.solids.size() != 13) {
+    if (embedded.schema_version != 1 || embedded.solids.size() != 18) {
         return false;
     }
     if (archview::find_solid(embedded, "truncated_icosahedron").faces.size() != 32) {
