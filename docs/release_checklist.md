@@ -1,7 +1,9 @@
 # Release checklist
 
-This checklist records the v1.2 release gates and the evidence distinction
-between automated/headless checks and real GUI or native-platform runs.
+This checklist records the published v1.2 release gates and the evidence
+distinction between automated/headless checks and real GUI or native-platform
+runs. The v1.3 motion/help implementation is on `main`; no new release archive
+was requested in this change.
 
 ## Source and data
 

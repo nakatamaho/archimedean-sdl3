@@ -1,6 +1,6 @@
 # Status
 
-Current milestone: M10 — complete.
+Current milestone: M11 — complete.
 
 ## Dependency baseline
 
@@ -22,6 +22,7 @@ Current milestone: M10 — complete.
 - M8 — MinGW-w64 cross-build with statically linked SDL3 and Wine compatibility checks.
 - M9 — Ubuntu and Windows/MSYS2 GitHub Actions validation jobs.
 - M10 — fresh-clone release QA, deterministic regeneration check, release checklist, and final documentation.
+- M11 — v1.3 X11-ico-style motion, runtime mode toggle, and in-window help overlay.
 
 ## Evidence
 
@@ -854,3 +855,86 @@ SDL3 and the GCC/C++ runtime statically linked. The release is not signed or
 notarized. The v1.2.0 tag was created by the first successful publish at
 `02c1dbe`; the later workflow-only checksum fix was applied to the published
 assets without rewriting the tag.
+
+## M11 / v1.3 evidence
+
+M11 adds the requested X11 `ico`-style motion and restores the complete
+keyboard documentation. The default animation now keeps a 3D orientation
+matrix and composes equal elapsed-time X- and Y-axis increments, matching the
+classic `ico` pattern while remaining frame-rate independent. `I` toggles
+between that mode and the existing arbitrary-axis mode; selecting an axis with
+`1`, `2`, `3`, or the arrow keys enters arbitrary-axis mode. `H` toggles an
+SDL3-window help panel rendered with `SDL_RenderDebugText`; no SDL_ttf or font
+asset was added. Key-repeat events do not repeatedly toggle the help panel.
+
+Implementation commit:
+
+```text
+d2b3cf2 feat: add ico-style motion and in-window help
+```
+
+The local Linux verification used a fresh v1.3 build directory:
+
+```sh
+cmake -S . -B build-v13-linux-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-v13-linux-static --parallel 4
+ctest --test-dir build-v13-linux-static --output-on-failure
+python3 tools/validate_archimedean.py data/archimedean.json
+./build-v13-linux-static/archimedean_viewer --help
+./build-v13-linux-static/archimedean_viewer --selftest
+./build-v13-linux-static/archimedean_viewer --selftest --solid icosahedron
+```
+
+Observed result:
+
+```text
+100% tests passed, 0 tests failed out of 4
+PASS: validated 18 solids
+PASS: loaded 18 solids; selected truncated_icosahedron
+PASS: loaded 18 solids; selected icosahedron
+```
+
+The SDL-independent tests additionally cover matrix composition, default
+ico-mode orientation changes, pause behavior, axis-mode switching, help
+visibility toggling, and Home reset. `git diff --check` passed. A dummy-video
+runtime smoke test was also run:
+
+```sh
+SDL_VIDEODRIVER=dummy SDL_RENDER_DRIVER=software timeout 2s ./build-v13-linux-static/archimedean_viewer --solid cube --width 320 --height 240
+```
+
+It remained running until the expected timeout (`exit_code=124`), indicating
+that the SDL event/render loop started without a display. This is not visual
+GUI evidence; the host still has no `DISPLAY` or `WAYLAND_DISPLAY`.
+
+The v1.3 MinGW verification used:
+
+```sh
+cmake -S . -B build-v13-mingw-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-v13-mingw-static --parallel 4
+ctest --test-dir build-v13-mingw-static --output-on-failure -E 'archview_tests|archview_embedded_selftest'
+python3 tools/validate_archimedean.py data/archimedean.json
+WINEDEBUG=-all wine ./build-v13-mingw-static/archimedean_viewer.exe --selftest
+WINEDEBUG=-all wine ./build-v13-mingw-static/archimedean_viewer.exe --selftest --solid icosahedron
+WINEDEBUG=-all wine ./build-v13-mingw-static/archview_tests.exe
+```
+
+Observed result:
+
+```text
+PE32+ x86-64 viewer and test binaries
+100% tests passed, 0 tests failed out of 2
+PASS: validated 18 solids
+PASS: loaded 18 solids; selected truncated_icosahedron
+PASS: loaded 18 solids; selected icosahedron
+PASS: archview_tests
+```
+
+`objdump -p` found no `SDL3.dll`, `libgcc`, `libstdc++`, or `winpthread`
+imports in either PE binary. The filtered CTest invocation excludes PE tests
+that cannot execute through the Linux host shell; direct Wine execution covers
+those binaries. Native Windows runtime and visual GUI evidence remain
+deferred as before.
+
+The v1.3 feature commit was pushed to `main`; the published v1.2.0 release was
+not replaced by this feature-only change.
