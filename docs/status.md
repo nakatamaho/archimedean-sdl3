@@ -947,4 +947,65 @@ macOS arm64/CMake: PASS
 
 The run executed CTest, committed-JSON validation, and the headless viewer
 self-test in every platform job. It provided no display-backed visual evidence.
-The published v1.2.0 release was not replaced by this feature-only change.
+
+## v1.3.0 release evidence
+
+The release-preparation commit was `43f0f9b chore: prepare v1.3 release
+workflow`, and the public release workflow run `35601204659` passed all five
+jobs:
+
+```text
+Build Linux x86_64 (static SDL3): PASS
+Build MinGW x86_64 (fully static): PASS
+Build macOS x86_64: PASS
+Build macOS arm64: PASS
+Publish multi-platform release: PASS
+```
+
+The public [`v1.3.0 release`](https://github.com/nakatamaho/archimedean-sdl3/releases/tag/v1.3.0)
+is not a draft or prerelease. Its tag points to `43f0f9b2708c3e91b2de24c8c8f373b538d091a8`
+and contains the following verified assets:
+
+```text
+archimedean-sdl3-v1.3.0-linux-x86_64.tar.gz
+  0cc92063b5723b37f80e615d15a36403bb816be437a06e4679193a7fb62ee4f6
+archimedean-sdl3-v1.3.0-macos-universal.tar.gz
+  c88925b45452c9458482a96210dfc67e003d9d503a7e48b107414a98081d6ae2
+archimedean-sdl3-v1.3.0-mingw-x86_64.tar.gz
+  2c8de666f0cc7c73963200ba1ff834e28a5799bebe26d5768592637cd477f315
+```
+
+The release was started and inspected with these commands:
+
+```sh
+gh workflow run release.yml --ref main -f release_tag=v1.3.0
+gh run watch 35601204659 --exit-status
+gh release view v1.3.0 --repo nakatamaho/archimedean-sdl3
+git ls-remote origin refs/tags/v1.3.0
+archive_tmp=$(mktemp -d)
+gh release download v1.3.0 --repo nakatamaho/archimedean-sdl3 --dir "$archive_tmp"
+cd "$archive_tmp"
+sha256sum -c SHA256SUMS
+tar -tzf archimedean-sdl3-v1.3.0-linux-x86_64.tar.gz
+tar -tzf archimedean-sdl3-v1.3.0-macos-universal.tar.gz
+tar -tzf archimedean-sdl3-v1.3.0-mingw-x86_64.tar.gz
+mkdir linux mingw macos
+tar -xzf archimedean-sdl3-v1.3.0-linux-x86_64.tar.gz -C linux
+tar -xzf archimedean-sdl3-v1.3.0-mingw-x86_64.tar.gz -C mingw
+tar -xzf archimedean-sdl3-v1.3.0-macos-universal.tar.gz -C macos
+readelf -d linux/archimedean_viewer
+objdump -p mingw/archimedean_viewer.exe
+file macos/ArchimedeanViewer.app/Contents/MacOS/archimedean_viewer
+```
+
+`SHA256SUMS` downloaded from the release verifies all three archives. The
+Linux archive contains an ELF x86_64 viewer with no dynamic SDL3 dependency;
+normal Linux system libraries remain dynamic. The MinGW archive contains a
+PE32+ x86_64 viewer with no `SDL3.dll`, libgcc, libstdc++, or winpthread
+imports; Windows system DLLs remain normal operating-system dependencies. The
+macOS archive contains a Mach-O universal viewer with x86_64 and arm64 slices,
+and its static SDL3 linkage was verified by the native macOS CI jobs.
+
+The release archives are unsigned and the macOS bundle is not notarized.
+Display-backed GUI evidence and native Windows runtime evidence remain
+deferred as recorded above.

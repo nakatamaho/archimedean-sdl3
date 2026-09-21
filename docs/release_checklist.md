@@ -1,9 +1,8 @@
 # Release checklist
 
-This checklist records the published v1.2 release gates and the evidence
+This checklist records the published v1.3.0 release gates and the evidence
 distinction between automated/headless checks and real GUI or native-platform
-runs. The v1.3 motion/help implementation is on `main`; no new release archive
-was requested in this change.
+runs. The v1.3 motion/help implementation is included in the release.
 
 ## Source and data
 
@@ -24,7 +23,7 @@ was requested in this change.
 - [x] Viewer `--selftest` loads all 18 solids.
 - [ ] Real display-backed interactive run and screenshot — DEFERRED: this host
   has no `DISPLAY` or `WAYLAND_DISPLAY`.
-- [x] v1.2 Linux release archive uses statically linked SDL3.
+- [x] v1.3 Linux release archive uses statically linked SDL3.
 
 ## Windows / MinGW-w64
 
@@ -37,7 +36,7 @@ was requested in this change.
 - [x] Wine compatibility self-tests pass on the Linux host.
 - [x] GitHub Actions MSYS2 UCRT64 job passes build, CTest, validator, and
   viewer self-test.
-- [x] v1.2 MinGW release archive fully statically links SDL3 and the GCC/C++
+- [x] v1.3 MinGW release archive fully statically links SDL3 and the GCC/C++
   runtime.
 - [ ] Native Windows `--selftest` and GUI run — DEFERRED: no native Windows
   machine/session is available.
@@ -48,7 +47,7 @@ was requested in this change.
 - [x] macOS static SDL3 builds pass CTest, validator, and embedded-data
   self-test.
 - [x] Universal macOS release archive is produced by the release workflow.
-- [x] v1.2 macOS release archive uses statically linked SDL3.
+- [x] v1.3 macOS release archive uses statically linked SDL3.
 - [ ] Apple-signed/notarized distribution — DEFERRED: signing credentials are
   not available.
 

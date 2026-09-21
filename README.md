@@ -111,15 +111,15 @@ ctest --test-dir build --output-on-failure
 open build/archimedean_viewer.app
 ```
 
-The `v1.2.0` release provides these archives:
+The `v1.3.0` release provides these archives:
 
-- [macOS universal](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-macos-universal.tar.gz), with SDL3 statically linked;
-- [Linux x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-linux-x86_64.tar.gz), with SDL3 statically linked (system graphics/audio libraries remain operating-system dependencies);
-- [MinGW x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/archimedean-sdl3-v1.2.0-mingw-x86_64.tar.gz), fully static for SDL3 and the GCC/C++ runtime (Windows system DLLs remain operating-system dependencies).
+- [macOS universal](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.3.0/archimedean-sdl3-v1.3.0-macos-universal.tar.gz), with SDL3 statically linked;
+- [Linux x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.3.0/archimedean-sdl3-v1.3.0-linux-x86_64.tar.gz), with SDL3 statically linked (system graphics/audio libraries remain operating-system dependencies);
+- [MinGW x86_64](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.3.0/archimedean-sdl3-v1.3.0-mingw-x86_64.tar.gz), fully static for SDL3 and the GCC/C++ runtime (Windows system DLLs remain operating-system dependencies).
 
 The archives are unsigned and the macOS bundle is not notarized; macOS may
 require the user to approve it in Privacy & Security before opening it. The
-release checksums are in [`SHA256SUMS`](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.2.0/SHA256SUMS).
+release checksums are in [`SHA256SUMS`](https://github.com/nakatamaho/archimedean-sdl3/releases/download/v1.3.0/SHA256SUMS).
 
 ## SageMath generation
 

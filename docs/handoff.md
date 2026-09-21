@@ -1,8 +1,8 @@
 # Handoff
 
-Project complete through M11. The v1.2 regular-solid extension remains the
-published baseline, and v1.3 adds X11-ico-style tumbling motion plus an
-SDL3-window help overlay.
+Project complete through M11 and released as v1.3.0. The release includes the
+X11-ico-style tumbling motion, SDL3-window help overlay, five Platonic solids,
+and the 13 Archimedean solids.
 
 No implementation milestone remains. External evidence still deferred:
 display-backed Linux/Windows visual run and native Windows runtime. Do not
@@ -18,12 +18,11 @@ time. It contains the five Platonic solids followed by the 13 Archimedean
 solids. The default executable no longer requires a JSON file or a particular
 working directory; `--data PATH` explicitly selects an external override.
 
-The project version is `1.3.0` on `main`. The published release remains
-`v1.2.0`; no v1.3 archive was requested. The release workflow builds native Intel and
-Apple Silicon macOS bundles, a Linux x86_64 archive with static SDL3, and a
-fully static MinGW x86_64 archive. It combines the macOS architectures with
-`lipo` and publishes all platform archives on the `v1.2.0` release. The
-archives are unsigned and notarization remains deferred.
+The project version is `1.3.0` on `main`. The public
+[`v1.3.0` release](https://github.com/nakatamaho/archimedean-sdl3/releases/tag/v1.3.0)
+contains native Intel and Apple Silicon macOS bundles combined with `lipo`, a
+Linux x86_64 archive with static SDL3, and a fully static MinGW x86_64 archive.
+The archives are unsigned and notarization remains deferred.
 
 M0 through M11 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
