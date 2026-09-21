@@ -24,7 +24,11 @@ jobs:
           python-version: "3.x"
 
       - name: Install Ninja
-        run: sudo apt-get update && sudo apt-get install --yes ninja-build
+        run: >-
+          sudo apt-get update && sudo apt-get install --yes ninja-build
+          libx11-dev libxext-dev libxrandr-dev libxfixes-dev libxcursor-dev
+          libxi-dev libxss-dev libwayland-dev libxkbcommon-dev
+          libegl1-mesa-dev libgl-dev
 
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
