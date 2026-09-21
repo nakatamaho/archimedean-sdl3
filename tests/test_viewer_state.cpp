@@ -14,8 +14,15 @@ bool close(const double left, const double right)
 bool test_viewer_state()
 {
     archview::ViewerState state;
+    if (!state.ico_motion || state.help_visible) {
+        return false;
+    }
     state.advance(1.0);
     if (!close(state.angle_radians, 30.0 * 3.141592653589793 / 180.0)) {
+        return false;
+    }
+    const archview::Vec3 ico_rotated = state.orientation * archview::Vec3{1.0, 0.0, 0.0};
+    if (std::abs(ico_rotated.z) <= 1.0e-12) {
         return false;
     }
     state.apply(archview::ViewerAction::TogglePause, 18);
@@ -37,6 +44,9 @@ bool test_viewer_state()
     }
 
     state.apply(archview::ViewerAction::AxisX, 18);
+    if (state.ico_motion) {
+        return false;
+    }
     state.apply(archview::ViewerAction::AzimuthIncrease, 18);
     state.apply(archview::ViewerAction::ElevationDecrease, 18);
     if (!state.axis.finite() || std::abs(state.axis.length() - 1.0) > 1.0e-12) {
@@ -80,6 +90,23 @@ bool test_viewer_state()
         return false;
     }
 
+    state.apply(archview::ViewerAction::ToggleHelp, 18);
+    if (!state.help_visible) {
+        return false;
+    }
+    state.apply(archview::ViewerAction::ToggleHelp, 18);
+    if (state.help_visible) {
+        return false;
+    }
+    state.apply(archview::ViewerAction::ToggleIcoMotion, 18);
+    if (!state.ico_motion) {
+        return false;
+    }
+    state.apply(archview::ViewerAction::ToggleIcoMotion, 18);
+    if (state.ico_motion) {
+        return false;
+    }
+
     state.solid_index = 5;
     state.apply(archview::ViewerAction::ResetOrientation, 18);
     if (!close(state.angle_radians, 0.0)) {
@@ -88,6 +115,6 @@ bool test_viewer_state()
     state.apply(archview::ViewerAction::ResetView, 18);
     return state.solid_index == 5 && close(state.speed_degrees, 30.0)
         && state.axis.x == 0.0 && state.axis.y == 1.0 && state.axis.z == 0.0
-        && !state.paused && !state.wireframe && state.lighting
-        && close(state.zoom, 1.0);
+        && !state.paused && state.ico_motion && !state.help_visible
+        && !state.wireframe && state.lighting && close(state.zoom, 1.0);
 }

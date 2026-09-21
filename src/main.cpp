@@ -15,6 +15,7 @@ struct Options {
     std::string solid_id{"truncated_icosahedron"};
     double speed_degrees{30.0};
     archview::Vec3 axis{0.0, 1.0, 0.0};
+    bool ico_motion{true};
     int width{1000};
     int height{800};
     bool selftest{false};
@@ -30,7 +31,7 @@ void print_help(const char* program)
         << "  --data PATH       Load an external Archimedean JSON file\n"
         << "  --solid ID        Select a solid\n"
         << "  --speed DEG/S     Set angular speed\n"
-        << "  --axis X,Y,Z      Set rotation axis\n"
+        << "  --axis X,Y,Z      Set custom rotation axis (disables ico motion)\n"
         << "  --width PIXELS    Set window width\n"
         << "  --height PIXELS   Set window height\n"
         << "  --selftest        Run the headless self-test\n"
@@ -77,6 +78,7 @@ bool parse_options(int argc, char** argv, Options& options)
                 if (!parse_axis(value, options.axis)) {
                     throw std::invalid_argument("axis must have the form X,Y,Z");
                 }
+                options.ico_motion = false;
             } else if (argument == "--width") {
                 options.width = std::stoi(value);
             } else if (argument == "--height") {
@@ -151,7 +153,9 @@ int main(int argc, char** argv)
                 options.height,
                 options.axis,
                 options.speed_degrees,
-                error
+                error,
+                true,
+                options.ico_motion
             )) {
             std::cerr << "error: " << error << "\n";
             return 1;

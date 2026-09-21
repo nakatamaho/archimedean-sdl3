@@ -55,15 +55,21 @@ python3 tools/validate_archimedean.py data/archimedean.json
 ```
 
 `--selftest` does not create a window. The normal viewer starts with the
-truncated icosahedron, a normalized Y axis, 30 degrees/second, and a 1000 x
-800 resizable window. The canonical JSON is embedded into the executable at
-build time, so the default launch does not depend on the current working
-directory or a separate JSON file. Use `--data PATH` to override it with an
-external JSON file:
+truncated icosahedron, ico-style motion, 30 degrees/second, and a 1000 x 800
+resizable window. Its custom-axis mode starts with a normalized Y axis. The
+canonical JSON is embedded into the executable at build time, so the default
+launch does not depend on the current working directory or a separate JSON
+file. Use `--data PATH` to override it with an external JSON file:
 
 ```sh
 ./build/archimedean_viewer --data data/archimedean.json
 ```
+
+Since v1.3, the default animation follows the classic X11 `ico` style: each
+elapsed-time update composes equal X- and Y-axis rotations, producing a
+continuous tumbling motion instead of spinning around one fixed axis. Press
+`I` to switch between this motion and the editable arbitrary-axis mode. The
+axis keys and arrow keys automatically select arbitrary-axis mode.
 
 An optional `ARCHVIEW_USE_SYSTEM_DEPS=ON` CMake mode is available for packagers
 with SDL3 and nlohmann/json config packages installed.
@@ -142,6 +148,8 @@ outputs with `cmp -s` before replacing the committed artifact.
 | --- | --- |
 | Esc | Quit |
 | Space | Pause/resume rotation |
+| H | Toggle the in-window help overlay |
+| I | Toggle X11 ico-style motion / custom-axis motion |
 | N / PageDown | Next solid |
 | P / PageUp | Previous solid |
 | 1 / 2 / 3 | Set rotation axis to X / Y / Z |
@@ -156,8 +164,9 @@ outputs with `cmp -s` before replacing the committed artifact.
 | Home | Restore default view, axis, speed, and zoom |
 
 Speed is clamped to `[-360, 360]` degrees/second and the axis is normalized
-after every edit. The title reports the selected solid, speed, axis, and
-paused/running state.
+after every edit. The title reports the selected solid, speed, axis, motion
+mode, and paused/running state. The H overlay repeats the complete keyboard
+control list inside the SDL3 window.
 
 ## Data and rendering
 

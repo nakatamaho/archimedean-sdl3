@@ -14,6 +14,19 @@ bool test_math_and_projection()
     if (std::abs(rotated.x) > 1.0e-12 || std::abs(rotated.y - 1.0) > 1.0e-12) {
         return false;
     }
+    const archview::Mat3 composed =
+        archview::Mat3::rotation_axis_angle(
+            {1.0, 0.0, 0.0}, 3.141592653589793 / 2.0
+        )
+        * archview::Mat3::rotation_axis_angle(
+            {0.0, 1.0, 0.0}, 3.141592653589793 / 2.0
+        );
+    const archview::Vec3 composed_vector = composed * archview::Vec3{0.0, 0.0, 1.0};
+    if (std::abs(composed_vector.x - 1.0) > 1.0e-12
+        || std::abs(composed_vector.y) > 1.0e-12
+        || std::abs(composed_vector.z) > 1.0e-12) {
+        return false;
+    }
     const auto projected = archview::perspective_project(
         {0.0, 0.0, 5.0}, 1000.0, 800.0, 45.0 * 3.141592653589793 / 180.0, 0.1
     );

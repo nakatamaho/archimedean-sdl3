@@ -8,7 +8,8 @@ Create a public GitHub repository named `archimedean-sdl3` containing:
 2. deterministic polygon data in `data/archimedean.json`;
 3. a portable C++17 SDL3 viewer for Linux and Windows/MinGW-w64;
 4. filled polygon rendering with flat Lambert shading;
-5. interactive control of the rotation axis and angular speed;
+5. interactive control of the rotation axis and angular speed, with v1.3
+   X11-ico-style tumbling motion and an in-window help overlay;
 6. CI that builds and runs non-GUI self-tests on Linux and MinGW/Windows.
 
 The polygon data is the canonical artifact. Preserve the original polygon faces. Do not permanently triangulate the JSON. Triangulate convex faces only in the viewer immediately before rendering.
@@ -234,7 +235,8 @@ Supported startup options:
 ```
 
 Default solid: `truncated_icosahedron`.
-Default rotation axis: normalized `(0,1,0)`.
+Default motion: X11-ico-style equal X/Y tumbling. The custom rotation axis
+starts at normalized `(0,1,0)` when arbitrary-axis mode is selected.
 Default angular speed: `30 deg/s`.
 Default window: `1000 x 800`, resizable.
 
@@ -247,7 +249,8 @@ The renderer is deliberately simple and portable.
 Per frame:
 
 1. integrate rotation using elapsed monotonic time, not frame count;
-2. rotate object-space vertices using a normalized arbitrary axis;
+2. in the default ico mode, compose equal X/Y incremental rotations; in
+   custom mode, rotate object-space vertices using a normalized arbitrary axis;
 3. transform into camera/view space;
 4. compute each polygon face normal in view space;
 5. back-face cull polygons facing away from the camera;
@@ -304,6 +307,8 @@ Required controls:
 ```text
 Esc                 Quit
 Space               Pause/resume rotation
+H                   Toggle in-window help overlay
+I                   Toggle X11 ico-style/custom-axis motion
 N / PageDown        Next solid
 P / PageUp          Previous solid
 1                   Rotation axis = X
@@ -328,6 +333,10 @@ Update the SDL window title at a modest rate, not every event, to show:
 
 ```text
 <solid> | speed=<...> deg/s | axis=(x,y,z) | paused/running
+
+The title also reports the active motion mode. The help overlay is rendered
+with SDL3's built-in debug text facility; SDL_ttf is intentionally not a
+dependency.
 ```
 
 No font dependency is required in v1.

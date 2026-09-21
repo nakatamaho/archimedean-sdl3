@@ -105,6 +105,20 @@ Mat3 Mat3::rotation_axis_angle(const Vec3& axis, const double radians)
     return result;
 }
 
+Mat3 Mat3::operator*(const Mat3& right) const noexcept
+{
+    Mat3 result{};
+    for (std::size_t row = 0; row < 3; ++row) {
+        for (std::size_t column = 0; column < 3; ++column) {
+            for (std::size_t inner = 0; inner < 3; ++inner) {
+                result.values[row][column] +=
+                    values[row][inner] * right.values[inner][column];
+            }
+        }
+    }
+    return result;
+}
+
 Vec3 Mat3::operator*(const Vec3& value) const noexcept
 {
     return {

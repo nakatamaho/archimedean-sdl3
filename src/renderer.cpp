@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <iomanip>
@@ -179,7 +180,8 @@ bool render_frame(
     std::string& error,
     const double camera_distance,
     const bool lighting_enabled,
-    const bool wireframe
+    const bool wireframe,
+    const bool help_visible
 )
 {
     if (!SDL_SetRenderDrawColor(renderer, 12, 16, 24, SDL_ALPHA_OPAQUE)
@@ -230,6 +232,59 @@ bool render_frame(
             }
         }
     }
+    if (help_visible) {
+        constexpr std::array<const char*, 15> kHelpLines{
+            "Controls (H to close)",
+            "I: toggle X11 ico-style motion/custom axis",
+            "Space: pause/resume rotation",
+            "N/PageDown: next solid",
+            "P/PageUp: previous solid",
+            "1/2/3: select X/Y/Z custom axis",
+            "Arrow keys: edit custom axis",
+            "[ / ]: decrease/increase speed",
+            "Backspace: reverse rotation",
+            "R: reset orientation",
+            "W: toggle wireframe",
+            "L: toggle Lambert lighting",
+            "+/-: zoom in/out",
+            "Home: reset view",
+            "Esc: quit",
+        };
+        const float panel_x = 12.0f;
+        const float panel_y = 12.0f;
+        const float panel_width = std::max(
+            1.0f,
+            std::min(520.0f, static_cast<float>(width) - 24.0f)
+        );
+        const float panel_height = static_cast<float>(
+            kHelpLines.size() * SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE + 24
+        );
+        const SDL_FRect panel{
+            panel_x, panel_y, panel_width, panel_height
+        };
+        if (!SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND)
+            || !SDL_SetRenderDrawColor(renderer, 4, 7, 12, 230)
+            || !SDL_RenderFillRect(renderer, &panel)
+            || !SDL_SetRenderDrawColor(renderer, 240, 244, 252, SDL_ALPHA_OPAQUE)) {
+            error = std::string("SDL help overlay background failed: ")
+                + SDL_GetError();
+            return false;
+        }
+        float text_y = panel_y + 12.0f;
+        for (const char* line : kHelpLines) {
+            if (!SDL_RenderDebugText(renderer, panel_x + 12.0f, text_y, line)) {
+                error = std::string("SDL help overlay text failed: ")
+                    + SDL_GetError();
+                return false;
+            }
+            text_y += static_cast<float>(SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE);
+        }
+        if (!SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE)) {
+            error = std::string("SDL help overlay blend reset failed: ")
+                + SDL_GetError();
+            return false;
+        }
+    }
     if (!SDL_RenderPresent(renderer)) {
         error = std::string("SDL_RenderPresent failed: ") + SDL_GetError();
         return false;
@@ -250,6 +305,12 @@ bool action_for_key(const SDL_Keycode key, ViewerAction& action)
         return true;
     case SDLK_SPACE:
         action = ViewerAction::TogglePause;
+        return true;
+    case SDLK_H:
+        action = ViewerAction::ToggleHelp;
+        return true;
+    case SDLK_I:
+        action = ViewerAction::ToggleIcoMotion;
         return true;
     case SDLK_N:
     case SDLK_PAGEDOWN:
@@ -320,6 +381,7 @@ std::string window_title(const Solid& solid, const ViewerState& state)
           << state.speed_degrees << " deg/s | axis=("
           << std::setprecision(2) << state.axis.x << "," << state.axis.y
           << "," << state.axis.z << ") | "
+          << "motion=" << (state.ico_motion ? "ico" : "axis") << " | "
           << (state.paused ? "paused" : "running");
     return title.str();
 }
@@ -384,25 +446,41 @@ void ViewerState::advance(const double elapsed_seconds) noexcept
         || !is_finite(speed_degrees)) {
         return;
     }
-    angle_radians += speed_degrees * kPi / 180.0 * elapsed_seconds;
+    const double angle_delta =
+        speed_degrees * kPi / 180.0 * elapsed_seconds;
+    angle_radians += angle_delta;
     if (!is_finite(angle_radians)) {
         angle_radians = 0.0;
     } else {
         angle_radians = std::fmod(angle_radians, 2.0 * kPi);
+    }
+    if (ico_motion) {
+        const Mat3 x_step = Mat3::rotation_axis_angle(
+            {1.0, 0.0, 0.0}, angle_delta
+        );
+        const Mat3 y_step = Mat3::rotation_axis_angle(
+            {0.0, 1.0, 0.0}, angle_delta
+        );
+        orientation = x_step * y_step * orientation;
+    } else {
+        orientation = Mat3::rotation_axis_angle(axis, angle_radians);
     }
 }
 
 void ViewerState::reset_orientation() noexcept
 {
     angle_radians = 0.0;
+    orientation = Mat3::identity();
 }
 
 void ViewerState::reset_view() noexcept
 {
     angle_radians = 0.0;
+    orientation = Mat3::identity();
     speed_degrees = 30.0;
     axis = {0.0, 1.0, 0.0};
     paused = false;
+    ico_motion = true;
     wireframe = false;
     lighting = true;
     zoom = 1.0;
@@ -417,6 +495,13 @@ void ViewerState::apply(
     const auto rotate_axis = [this](const Vec3& edit_axis, const double radians) {
         axis = Mat3::rotation_axis_angle(edit_axis, radians) * axis;
         axis = axis.normalized();
+        ico_motion = false;
+        orientation = Mat3::rotation_axis_angle(axis, angle_radians);
+    };
+    const auto select_axis = [this](const Vec3 selected_axis) {
+        axis = selected_axis;
+        ico_motion = false;
+        orientation = Mat3::rotation_axis_angle(axis, angle_radians);
     };
 
     switch (action) {
@@ -425,6 +510,15 @@ void ViewerState::apply(
         break;
     case ViewerAction::TogglePause:
         paused = !paused;
+        break;
+    case ViewerAction::ToggleHelp:
+        help_visible = !help_visible;
+        break;
+    case ViewerAction::ToggleIcoMotion:
+        ico_motion = !ico_motion;
+        if (!ico_motion) {
+            orientation = Mat3::rotation_axis_angle(axis, angle_radians);
+        }
         break;
     case ViewerAction::NextSolid:
         if (solid_count > 0) {
@@ -437,13 +531,13 @@ void ViewerState::apply(
         }
         break;
     case ViewerAction::AxisX:
-        axis = {1.0, 0.0, 0.0};
+        select_axis({1.0, 0.0, 0.0});
         break;
     case ViewerAction::AxisY:
-        axis = {0.0, 1.0, 0.0};
+        select_axis({0.0, 1.0, 0.0});
         break;
     case ViewerAction::AxisZ:
-        axis = {0.0, 0.0, 1.0};
+        select_axis({0.0, 0.0, 1.0});
         break;
     case ViewerAction::AzimuthDecrease:
         rotate_axis({0.0, 1.0, 0.0}, -kAxisEditRadians);
@@ -509,7 +603,8 @@ bool Renderer::run(
     const Vec3& rotation_axis,
     const double speed_degrees,
     std::string& error,
-    const bool lighting_enabled
+    const bool lighting_enabled,
+    const bool initial_ico_motion
  ) const
 {
     if (width <= 0 || height <= 0) {
@@ -556,6 +651,7 @@ bool Renderer::run(
     );
     state.axis = rotation_axis.normalized();
     state.lighting = lighting_enabled;
+    state.ico_motion = initial_ico_motion;
     const auto selected = std::find_if(
         model.solids.begin(),
         model.solids.end(),
@@ -586,7 +682,8 @@ bool Renderer::run(
                 state.apply(ViewerAction::Quit, model.solids.size());
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
                 ViewerAction action;
-                if (action_for_key(event.key.key, action)) {
+                if (action_for_key(event.key.key, action)
+                    && (action != ViewerAction::ToggleHelp || !event.key.repeat)) {
                     state.apply(action, model.solids.size());
                 }
             }
@@ -613,19 +710,17 @@ bool Renderer::run(
             break;
         }
         const double camera_distance = kCameraDistance / state.zoom;
-        const Mat3 rotation = Mat3::rotation_axis_angle(
-            state.axis, state.angle_radians
-        );
         if (!render_frame(
                 renderer,
                 model.solids[state.solid_index],
-                rotation,
+                state.orientation,
                 pixel_width,
                 pixel_height,
                 error,
                 camera_distance,
                 state.lighting,
-                state.wireframe
+                state.wireframe,
+                state.help_visible
             )) {
             success = false;
             break;

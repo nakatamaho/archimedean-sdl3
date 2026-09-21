@@ -31,6 +31,8 @@ struct FaceColor {
 enum class ViewerAction {
     Quit,
     TogglePause,
+    ToggleHelp,
+    ToggleIcoMotion,
     NextSolid,
     PreviousSolid,
     AxisX,
@@ -57,10 +59,13 @@ struct ViewerState {
     double speed_degrees{30.0};
     Vec3 axis{0.0, 1.0, 0.0};
     bool paused{false};
+    bool help_visible{false};
+    bool ico_motion{true};
     bool wireframe{false};
     bool lighting{true};
     double zoom{1.0};
     bool quit{false};
+    Mat3 orientation{Mat3::identity()};
 
     void apply(ViewerAction action, std::size_t solid_count);
     void advance(double elapsed_seconds) noexcept;
@@ -78,7 +83,8 @@ public:
         const Vec3& rotation_axis,
         double speed_degrees,
         std::string& error,
-        bool lighting_enabled = true
+        bool lighting_enabled = true,
+        bool ico_motion = true
     ) const;
 };
 

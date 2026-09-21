@@ -33,6 +33,7 @@ struct Mat3 {
         const Vec3& axis,
         double radians
     );
+    [[nodiscard]] Mat3 operator*(const Mat3& right) const noexcept;
     [[nodiscard]] Vec3 operator*(const Vec3& value) const noexcept;
 };
 

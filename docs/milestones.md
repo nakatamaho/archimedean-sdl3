@@ -5,6 +5,8 @@ Complete milestones in order. Do not start a second milestone in the same `/goal
 M0 through M10 define the original v1 implementation. The v1.2 extension
 keeps those milestones complete and expands the canonical data set from the 13
 Archimedean solids to 18 regular solids by adding the five Platonic solids.
+The v1.3 extension adds X11-ico-style tumbling motion and an in-window help
+overlay without changing the polygon-data or SDL_RenderGeometry architecture.
 
 | Milestone | Goal | Acceptance | Difficulty |
 |---|---|---|---|
@@ -19,6 +21,7 @@ Archimedean solids to 18 regular solids by adding the five Platonic solids.
 | M8 | Windows/MinGW support | Native MinGW-w64 build succeeds; DLL handling documented; native Windows `--selftest` PASS; GUI runtime evidence recorded if available | Medium |
 | M9 | GitHub Actions CI | Ubuntu and Windows/MinGW jobs build and run validator, CTest, and `--selftest`; no false visual PASS claims | Medium |
 | M10 | Release-quality QA and documentation | clean rebuilds, generator provenance, README controls/build docs, screenshots from real runs, release checklist complete | Medium |
+| M11 | v1.3 ico motion and in-window help | Default motion composes elapsed-time X/Y rotations like X11 `ico`; `I` toggles custom-axis mode; `H` toggles SDL3-window help; README and tests document the controls | Medium |
 
 ## M0 — Repository bootstrap
 
@@ -161,3 +164,21 @@ Add Ubuntu and Windows/MSYS2 MinGW jobs. Pin action major versions. Checkout sub
 - Regenerate JSON from documented SageMath environment and compare.
 - Update README and handoff.
 - Tag only after all non-deferred release gates pass.
+
+## M11 — v1.3 motion and help
+
+### Work
+
+- Make the default animation compose equal X/Y rotations using elapsed time,
+  matching the classic X11 `ico` tumbling style while preserving the existing
+  arbitrary-axis mode.
+- Add `I` to toggle ico-style and custom-axis motion.
+- Add `H` to toggle an SDL3-rendered help overlay; use SDL3's built-in debug
+  text so SDL_ttf is not introduced.
+- Restore and extend the README keyboard table, including the new controls.
+
+### Tests
+
+- Test matrix composition and ico-mode state transitions headlessly.
+- Build and run CTest, validator, `--help`, embedded self-test, and CI.
+- Record that visual overlay and native GUI evidence require a display.

@@ -57,7 +57,17 @@ Do not silently widen a tolerance to make failing data pass. Record why a change
 
 ## Viewer behavior
 
-The solid continuously rotates using elapsed time. The user can edit the normalized rotation axis and angular speed while the program is running. Each polygon is opaque and flat-shaded.
+The solid continuously rotates using elapsed time. The v1.3 default motion
+matches the classic X11 `ico` animation pattern: each update composes equal
+X-axis and Y-axis rotations, so the object visibly tumbles rather than
+spinning around one fixed axis. The `I` key toggles between this ico-style
+motion and the editable arbitrary-axis motion. Selecting an axis with `1`,
+`2`, `3`, or the arrow keys enters arbitrary-axis mode. Speed, pause, reverse,
+and reset continue to apply in both modes.
+
+The `H` key toggles an in-window help overlay rendered by SDL3's built-in
+debug text API. It must not require SDL_ttf or any external font asset. Each
+polygon is opaque and flat-shaded.
 
 For a convex solid, v1 uses back-face culling plus back-to-front visible-face sorting instead of a hardware depth buffer. If a concrete artifact demonstrates incorrect occlusion, replace this renderer in a later milestone; do not preemptively introduce a platform-specific graphics API.
 
