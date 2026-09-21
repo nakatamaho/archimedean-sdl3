@@ -254,11 +254,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
+          release_assets=(release/*.tar.gz release/SHA256SUMS)
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" release/* \
+            gh release upload "$RELEASE_TAG" "${release_assets[@]}" \
               --repo "$GITHUB_REPOSITORY" --clobber
           else
-            gh release create "$RELEASE_TAG" release/* \
+            gh release create "$RELEASE_TAG" "${release_assets[@]}" \
               --title "Archimedean SDL3 Viewer ${RELEASE_TAG}" \
               --repo "$GITHUB_REPOSITORY" \
               --generate-notes
