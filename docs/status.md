@@ -148,5 +148,74 @@ M1 implementation commit:
 ```text
 [main 92b40c2] build: establish CMake and SDL baseline
  15 files changed, 302 insertions(+)
+
+## M2 evidence
+
+M2 adds the SageMath constructors and deterministic canonicalization without
+committing the JSON artifact yet. The generator uses Sage's
+`polytopes` constructors for all 13 solids, including
+`polytopes.snub_dodecahedron(base_ring=AA, backend="normaliz")`. It sorts
+vertices by normalized coordinates, cyclically orders each face in its plane,
+forces outward winding, and preserves polygon faces.
+
+The Sage environment used for execution is Conda-forge SageMath 10.9 with
+PyNormaliz 2.23 and Normaliz 3.11.0. The exact constructor probe reported all
+expected f-vectors, including:
+
+```text
+truncated_tetrahedron (1, 12, 18, 8, 1)
+...
+snub_dodecahedron (1, 60, 150, 92, 1)
+```
+
+The generator command executed in that environment was:
+
+```sh
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output data/archimedean.json
+```
+
+It reported:
+
+```text
+generated 13 solids at data/archimedean.json
+```
+
+The installed Conda-forge Sage launcher is the Sage 10.9 CLI but does not
+implement the legacy `sage -python` option; invoking that spelling produced
+`sage: error: unrecognized arguments: --output data/archimedean.json`. The
+tested equivalent runs the generator with the Sage environment's Python,
+which imports `sage.all` and executes the Sage constructors. This launcher
+compatibility detail is recorded rather than claimed as an exact
+`sage -python` pass.
+
+Determinism test:
+
+```sh
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output <temporary>/one.json
+/tmp/codex-micromamba/bin/micromamba run -p /tmp/codex-sage python tools/generate_archimedean.py --output <temporary>/two.json
+cmp -s <temporary>/one.json <temporary>/two.json
+```
+
+Observed result:
+
+```text
+PASS: complete generated JSON is byte-identical
+e616a715fc32833085afec33b02c70aafe85649b80f8768e5e8d88a397547f09  one.json
+e616a715fc32833085afec33b02c70aafe85649b80f8768e5e8d88a397547f09  two.json
+solids 13 sage 10.9
+```
+
+The generator's validation passed for every solid: expected V/E/F and
+histograms, Euler characteristic two, two-face edge incidence, distinct
+face vertices, in-range indices, no duplicate face edges, planarity at
+`1e-9 * characteristic_radius`, normalized mean edge length one with
+`1e-8` relative spread, finite coordinates, and outward winding.
+
+M2 implementation commit:
+
+```text
+[main 61b3e5d] feat: add SageMath Archimedean generator
+ 2 files changed, 461 insertions(+)
+```
 ```
 ```
