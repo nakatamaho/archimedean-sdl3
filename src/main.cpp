@@ -1,3 +1,4 @@
+#include "archview/embedded_model.hpp"
 #include "archview/math3d.hpp"
 #include "archview/polyhedron.hpp"
 #include "archview/renderer.hpp"
@@ -17,6 +18,7 @@ struct Options {
     int width{1000};
     int height{800};
     bool selftest{false};
+    bool use_embedded_data{true};
 };
 
 void print_help(const char* program)
@@ -25,7 +27,7 @@ void print_help(const char* program)
         << "Usage: " << program << " [options]\n"
         << "\n"
         << "Options:\n"
-        << "  --data PATH       Load an Archimedean JSON file\n"
+        << "  --data PATH       Load an external Archimedean JSON file\n"
         << "  --solid ID        Select a solid\n"
         << "  --speed DEG/S     Set angular speed\n"
         << "  --axis X,Y,Z      Set rotation axis\n"
@@ -66,6 +68,7 @@ bool parse_options(int argc, char** argv, Options& options)
         try {
             if (argument == "--data") {
                 options.data_path = value;
+                options.use_embedded_data = false;
             } else if (argument == "--solid") {
                 options.solid_id = value;
             } else if (argument == "--speed") {
@@ -95,6 +98,17 @@ bool parse_options(int argc, char** argv, Options& options)
     return true;
 }
 
+archview::Model load_selected_model(const Options& options)
+{
+    if (options.use_embedded_data) {
+        return archview::load_model_text(
+            archview::kEmbeddedModelJson,
+            "embedded canonical model"
+        );
+    }
+    return archview::load_model_file(options.data_path);
+}
+
 }  // namespace
 
 int main(int argc, char** argv)
@@ -105,7 +119,7 @@ int main(int argc, char** argv)
             return 0;
         }
         if (options.selftest) {
-            const archview::Model model = archview::load_model_file(options.data_path);
+            const archview::Model model = load_selected_model(options);
             const archview::Solid& solid =
                 archview::find_solid(model, options.solid_id);
             const archview::Mat3 rotation =
@@ -126,8 +140,7 @@ int main(int argc, char** argv)
             return 0;
         }
 
-        const archview::Model model =
-            archview::load_model_file(options.data_path);
+        const archview::Model model = load_selected_model(options);
         (void)archview::find_solid(model, options.solid_id);
         const archview::Renderer renderer;
         std::string error;

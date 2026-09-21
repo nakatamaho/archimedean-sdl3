@@ -11,6 +11,10 @@ The MinGW configuration statically links vendored SDL3 with
 -static-libstdc++` for executables. No SDL3, GCC, or C++ runtime DLL is
 expected beside the viewer; Windows system DLLs remain normal dependencies.
 
+The canonical `data/archimedean.json` is embedded into the viewer at build
+time. The default executable no longer requires a JSON file or a particular
+working directory; `--data PATH` explicitly selects an external override.
+
 M0 through M10 evidence is recorded in `docs/status.md`. The public remote is
 `https://github.com/nakatamaho/archimedean-sdl3`, with `main` as its default
 branch.

@@ -14,6 +14,21 @@ if(MINGW)
     add_link_options(-static -static-libgcc -static-libstdc++)
 endif()
 
+set(ARCHVIEW_EMBEDDED_MODEL_SOURCE
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/embedded_model.cpp"
+)
+add_custom_command(
+    OUTPUT "${ARCHVIEW_EMBEDDED_MODEL_SOURCE}"
+    COMMAND ${CMAKE_COMMAND}
+            -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/data/archimedean.json
+            -DOUTPUT=${ARCHVIEW_EMBEDDED_MODEL_SOURCE}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_json.cmake
+    DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/data/archimedean.json"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_json.cmake"
+    VERBATIM
+)
+
 if(NOT ARCHVIEW_USE_SYSTEM_DEPS)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/CMakeLists.txt")
         message(FATAL_ERROR
@@ -42,6 +57,7 @@ else()
 endif()
 
 add_library(archview_core
+    "${ARCHVIEW_EMBEDDED_MODEL_SOURCE}"
     src/math3d.cpp
     src/polyhedron.cpp
 )
@@ -101,6 +117,7 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
     add_test(NAME archview_tests COMMAND archview_tests)
+    add_test(NAME archview_embedded_selftest COMMAND archimedean_viewer --selftest)
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
     add_test(
         NAME archview_validator

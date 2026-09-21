@@ -52,6 +52,10 @@ public:
 
 [[nodiscard]] bool core_schema_version_supported(std::int64_t version) noexcept;
 [[nodiscard]] Model load_model_file(const std::string& path);
+[[nodiscard]] Model load_model_text(
+    const std::string& text,
+    const std::string& source_name
+);
 [[nodiscard]] Model load_model_json(const nlohmann::json& document);
 [[nodiscard]] const Solid& find_solid(const Model& model, const std::string& id);
 

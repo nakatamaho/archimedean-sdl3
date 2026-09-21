@@ -29,6 +29,8 @@ between automated/headless checks and real GUI or native-platform runs.
 - [x] SDL3 and the MinGW GCC/C++ runtime are statically linked; no SDL3, GCC,
   or C++ runtime DLL is required beside the executable (Windows system DLLs
   remain expected).
+- [x] Canonical JSON is embedded in the viewer; an external JSON file is only
+  needed when explicitly supplied with `--data`.
 - [x] Wine compatibility self-tests pass on the Linux host.
 - [x] GitHub Actions MSYS2 UCRT64 job passes build, CTest, validator, and
   viewer self-test.

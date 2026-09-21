@@ -262,7 +262,7 @@ manifold edge, incorrect statistics, and NaN-like JSON input. CTest also
 executes the validator and negative suite:
 
 ```text
-100% tests passed, 0 tests failed out of 3
+100% tests passed, 0 tests failed out of 4
 ```
 
 The committed JSON contains exactly 13 solids and preserves polygon faces;
@@ -548,6 +548,41 @@ c45c175 fix: fully statically link MinGW runtime
 GitHub Actions run `35588366875` passed both Ubuntu GCC/Ninja and Windows MSYS2
 UCRT64/Ninja. The Windows job also passed the complete-static import check for
 both executables.
+
+## Embedded model follow-up
+
+The viewer now embeds the canonical `data/archimedean.json` during the normal
+CMake build. The generated C++ source is created from the committed JSON by
+`cmake/embed_json.cmake`; it is not a hand-copied mesh or a second geometry
+source. The default viewer path loads this embedded text, while an explicit
+`--data PATH` keeps the external-file override for development and validation.
+
+Exact verification commands:
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --parallel 2
+(cd /tmp && /home/docker/work/archimedean-sdl3-codex/archimedean-sdl3/build/archimedean_viewer --selftest)
+ctest --test-dir build --output-on-failure
+cmake --fresh -S . -B build-mingw-complete-static -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DSDL_SHARED=OFF -DSDL_STATIC=ON
+cmake --build build-mingw-complete-static --parallel 4
+(cd /tmp && WINEDEBUG=-all wine /home/docker/work/archimedean-sdl3-codex/archimedean-sdl3/build-mingw-complete-static/archimedean_viewer.exe --selftest)
+(cd /tmp && WINEDEBUG=-all wine /home/docker/work/archimedean-sdl3-codex/archimedean-sdl3/build-mingw-complete-static/archview_tests.exe)
+```
+
+Observed results:
+
+```text
+PASS: loaded 13 solids; selected truncated_icosahedron
+100% tests passed, 0 tests failed out of 3
+PASS: loaded 13 solids; selected truncated_icosahedron
+PASS: archview_tests
+```
+
+Both default self-tests passed from `/tmp`, proving that the executables do
+not need a working-directory-relative JSON file. The generated source and
+embedded model are build artifacts; the canonical source remains the SageMath
+generated JSON committed under `data/`.
 
 ## M9 evidence
 

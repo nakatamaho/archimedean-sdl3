@@ -387,6 +387,15 @@ Model load_model_file(const std::string& path)
     }
 }
 
+Model load_model_text(const std::string& text, const std::string& source_name)
+{
+    try {
+        return load_model_json(nlohmann::json::parse(text));
+    } catch (const nlohmann::json::exception& error) {
+        throw ModelError("malformed JSON in " + source_name + ": " + error.what());
+    }
+}
+
 Model load_model_json(const nlohmann::json& document)
 {
     try {

@@ -54,7 +54,7 @@ jobs:
         run: python tools/validate_archimedean.py data/archimedean.json
 
       - name: Run headless viewer self-test
-        run: ./build/archimedean_viewer --selftest --data data/archimedean.json
+        run: ./build/archimedean_viewer --selftest
 
   windows:
     name: Windows MSYS2 UCRT64/Ninja
@@ -95,4 +95,4 @@ jobs:
         run: python tools/validate_archimedean.py data/archimedean.json
 
       - name: Run headless viewer self-test
-        run: ./build/archimedean_viewer.exe --selftest --data data/archimedean.json
+        run: ./build/archimedean_viewer.exe --selftest

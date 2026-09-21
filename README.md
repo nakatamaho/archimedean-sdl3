@@ -46,12 +46,15 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 python3 tools/validate_archimedean.py data/archimedean.json
-./build/archimedean_viewer --selftest --data data/archimedean.json
+./build/archimedean_viewer --selftest
 ```
 
 `--selftest` does not create a window. The normal viewer starts with the
 truncated icosahedron, a normalized Y axis, 30 degrees/second, and a 1000 x
-800 resizable window:
+800 resizable window. The canonical JSON is embedded into the executable at
+build time, so the default launch does not depend on the current working
+directory or a separate JSON file. Use `--data PATH` to override it with an
+external JSON file:
 
 ```sh
 ./build/archimedean_viewer --data data/archimedean.json
@@ -74,12 +77,13 @@ cmake -S . -B build-mingw -G Ninja \
 cmake --build build-mingw --parallel
 ```
 
-The MinGW configuration statically links SDL3 and the GCC/C++ runtime, so the
-viewer does not require adjacent `SDL3.dll`, `libgcc_s_seh-1.dll`, or
-`libstdc++-6.dll` files. Windows system DLLs such as `KERNEL32.dll` remain
-normal operating-system dependencies. A MinGW cross-compile is not native
-Windows runtime evidence. See [`docs/status.md`](docs/status.md) for the
-current platform evidence and limitations.
+The MinGW configuration statically links SDL3 and the GCC/C++ runtime, and
+embeds the canonical JSON. The viewer does not require adjacent `SDL3.dll`,
+`libgcc_s_seh-1.dll`, `libstdc++-6.dll`, or JSON files. Windows system DLLs
+such as `KERNEL32.dll` remain normal operating-system dependencies. A MinGW
+cross-compile is not native Windows runtime evidence. See
+[`docs/status.md`](docs/status.md) for the current platform evidence and
+limitations.
 
 ## SageMath generation
 

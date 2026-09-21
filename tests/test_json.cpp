@@ -1,3 +1,4 @@
+#include "archview/embedded_model.hpp"
 #include "archview/polyhedron.hpp"
 
 #include <fstream>
@@ -46,6 +47,17 @@ bool test_json_and_model()
     if (!throws_model_error([&document] {
             (void)archview::load_model_json(document);
         })) {
+        return false;
+    }
+
+    const archview::Model embedded = archview::load_model_text(
+        archview::kEmbeddedModelJson,
+        "embedded canonical model"
+    );
+    if (embedded.schema_version != 1 || embedded.solids.size() != 13) {
+        return false;
+    }
+    if (archview::find_solid(embedded, "truncated_icosahedron").faces.size() != 32) {
         return false;
     }
 
