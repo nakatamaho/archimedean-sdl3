@@ -584,6 +584,36 @@ not need a working-directory-relative JSON file. The generated source and
 embedded model are build artifacts; the canonical source remains the SageMath
 generated JSON committed under `data/`.
 
+## macOS and 1.0.0 release follow-up
+
+The project version is now `1.0.0`. On Apple platforms the viewer target is a
+native `.app` bundle with SDL3 statically linked and the canonical JSON
+embedded. The release workflow builds both supported hosted architectures:
+`macos-15-intel` for x86_64 and `macos-15` for arm64. It combines the two
+executables with `lipo` into one universal application archive.
+
+The macOS implementation and workflow commits are:
+
+```text
+443764d feat: add macOS universal release workflow
+ea472fe ci: use supported macOS runner labels
+```
+
+GitHub Actions run `35592330646` passed all four jobs:
+
+```text
+Ubuntu GCC/Ninja: PASS
+Windows MSYS2 UCRT64/Ninja: PASS
+macOS x86_64/CMake (`macos-15-intel`): PASS
+macOS arm64/CMake (`macos-15`): PASS
+```
+
+Each macOS job configured with `-DSDL_SHARED=OFF -DSDL_STATIC=ON`, built the
+`.app` bundle, ran CTest (including the embedded-data self-test), validated the
+committed JSON, and ran the embedded-data self-test directly. The host has no
+native macOS runtime, so this CI evidence is the native macOS evidence for the
+release. The archive is intentionally unsigned and not notarized.
+
 ## M9 evidence
 
 `.github/workflows/ci.yml` now defines Ubuntu GCC/Ninja and Windows MSYS2
