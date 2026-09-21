@@ -614,6 +614,19 @@ committed JSON, and ran the embedded-data self-test directly. The host has no
 native macOS runtime, so this CI evidence is the native macOS evidence for the
 release. The archive is intentionally unsigned and not notarized.
 
+Release workflow run `35593240435` completed successfully. The public release
+is [`v1.0.0`](https://github.com/nakatamaho/archimedean-sdl3/releases/tag/v1.0.0)
+with asset
+`archimedean-sdl3-v1.0.0-macos-universal.tar.gz`. Its verified SHA256 is:
+
+```text
+95d7ae49cd52290ff62036be0ea916dc28f392e68a94d910d45c7893a5dafb5b
+```
+
+The downloaded archive contains `ArchimedeanViewer.app`, `LICENSE`, and
+`README.md`; `file` verifies the application executable as a Mach-O universal
+binary containing x86_64 and arm64 slices.
+
 ## M9 evidence
 
 `.github/workflows/ci.yml` now defines Ubuntu GCC/Ninja and Windows MSYS2
