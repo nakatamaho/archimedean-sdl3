@@ -1009,3 +1009,13 @@ and its static SDL3 linkage was verified by the native macOS CI jobs.
 The release archives are unsigned and the macOS bundle is not notarized.
 Display-backed GUI evidence and native Windows runtime evidence remain
 deferred as recorded above.
+
+The documentation commit `6cdfeea docs: record v1.3 release` was followed by
+CI run `35601908394`, which passed all four jobs:
+
+```text
+Ubuntu GCC/Ninja: PASS
+Windows MSYS2 UCRT64/Ninja: PASS
+macOS x86_64/CMake: PASS
+macOS arm64/CMake: PASS
+```
