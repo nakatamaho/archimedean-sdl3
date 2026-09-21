@@ -1,13 +1,13 @@
 # Status
 
-Current milestone: M5 — complete.
+Current milestone: M6 — complete.
 
 ## Dependency baseline
 
 - SDL target release: 3.4.16
 - nlohmann/json target release: 3.12.0
-- SageMath version: to be recorded during M2
-- PyNormaliz/Normaliz version: to be recorded during M2
+- SageMath version: 10.9 (Conda-forge environment used for M2)
+- PyNormaliz/Normaliz version: PyNormaliz 2.23 / Normaliz 3.11.0
 
 ## Completed work
 
@@ -17,6 +17,7 @@ Current milestone: M5 — complete.
 - M3 — independent CPython validator and canonical JSON data committed.
 - M4 — SDL-independent C++ model loader, topology validation, and math library.
 - M5 — SDL3 CPU-side filled polygon renderer with culling and depth sorting.
+- M6 — flat Lambert shading, polygon-size palette, and testable lighting path.
 
 ## Evidence
 
@@ -152,6 +153,7 @@ M1 implementation commit:
 ```text
 [main 92b40c2] build: establish CMake and SDL baseline
  15 files changed, 302 insertions(+)
+```
 
 ## M2 evidence
 
@@ -220,6 +222,7 @@ M2 implementation commit:
 ```text
 [main 61b3e5d] feat: add SageMath Archimedean generator
  2 files changed, 461 insertions(+)
+```
 
 ## M3 evidence
 
@@ -267,6 +270,7 @@ M3 implementation commit:
 ```text
 [main 45e891f] feat: validate and commit canonical solid data
  6 files changed, 10253 insertions(+), 1 deletion(-)
+```
 
 ## M4 evidence
 
@@ -305,6 +309,7 @@ M4 implementation commit:
 ```text
 [main b934514] feat: add validated model loader and math library
  9 files changed, 843 insertions(+), 33 deletions(-)
+```
 
 ## M5 evidence
 
@@ -344,8 +349,50 @@ M5 implementation commit:
 [main 040dcf2] feat: add SDL3 polygon renderer
  3 files changed, 293 insertions(+), 4 deletions(-)
 ```
+
+## M6 evidence
+
+M6 adds a fixed palette keyed by polygon side count for triangles, squares,
+pentagons, hexagons, octagons, and decagons. Each visible face uses its
+view-space Newell normal and the fixed directional light with
+`ambient=0.25` and `diffuse=0.75`:
+
+```text
+intensity = ambient + diffuse * max(0, dot(normal, light_direction))
 ```
+
+The final RGB channels are clamped and alpha remains one. The renderer's
+lighting flag selects the lit path or the unlit base palette; the interactive
+`L` key is completed in M7. The headless renderer-color test checks palette
+separation, full illumination, ambient-only back lighting, unlit behavior,
+and alpha preservation.
+
+Exact regression commands:
+
+```sh
+cmake --fresh -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+./build/archimedean_viewer --selftest --data data/archimedean.json
+SDL_VIDEODRIVER=offscreen SDL_RENDER_DRIVER=software timeout 2s ./build/archimedean_viewer --data data/archimedean.json --width 320 --height 240
 ```
+
+Observed results:
+
+```text
+100% tests passed, 0 tests failed out of 3
+PASS: loaded 13 solids; selected truncated_icosahedron
+offscreen process exit=124; it stayed in the render loop
 ```
+
+The offscreen run emitted host EGL permission warnings but no application
+error. It verifies startup and repeated frame execution, not a visual-display
+pass. This host still has no `DISPLAY` or `WAYLAND_DISPLAY`, so real visual
+shading evidence remains deferred.
+
+M6 implementation commit:
+
+```text
+[main 9614dd0] feat: add flat Lambert face shading
 ```
 ```
